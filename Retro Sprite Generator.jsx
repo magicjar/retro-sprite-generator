@@ -26,7 +26,9 @@ function RetroSpriteGenerator() {
         spriteResolution,
         selectedIndex = 0,
         uniformIndex = 0,
-        separateIndex = 1;
+        separateIndex = 1,
+        spacing = 0,
+        offset = 0;
 
     function createSpriteSheet(onFinished) {
         try {
@@ -34,6 +36,8 @@ function RetroSpriteGenerator() {
 
             columns = dlg.columns.text;
             rows = dlg.rows.text;
+            spacing = dlg.spacing.text;
+            offset = dlg.offset.text;
             
             sheetName = sheetName + "_" + currentDoc.width.value + "x" + currentDoc.height.value;
             var startFrame = parseInt(dlg.startFrame.text);
@@ -348,6 +352,24 @@ function RetroSpriteGenerator() {
                     break;
             }
         }
+
+        // Spacing & Offset
+
+        dlg.spacoffPanel = dlg.add('panel', undefined, "Offset & Spacing");
+        dlg.spacoffPanel.alignment = ['fill', 'top'];
+
+        // Spacing & Offset Preferences
+
+        dlg.spacoffGroup = dlg.spacoffPanel.add('group');
+        dlg.spacoffGroup.alignment = ['left', 'top'];
+
+        dlg.spacoffGroup.add('StaticText', [0, 0, 60, 25], 'Offset:');
+        dlg.offset = dlg.spacoffGroup.add('EditText', undefined, offset);
+        dlg.offset.characters = 5;
+
+        dlg.spacoffGroup.add('StaticText', [0, 0, 60, 25], 'Spacing:');
+        dlg.spacing = dlg.spacoffGroup.add('EditText', undefined, spacing);
+        dlg.spacing.characters = 5;
         
 
         // Padding
