@@ -1,7 +1,8 @@
-/***
-/* Somewhat simplistic spritesheet generation script
-/* Author: @bogdan_rybak github.com/bogdanrybak
-/*/
+/**
+ * Title: Retro Sprite Generator
+ * Author: @dawntale
+ * Url: https://github.com/dawntale
+*/
 
 #target photoshop
 function RetroSpriteGenerator() {
@@ -16,60 +17,49 @@ function RetroSpriteGenerator() {
         scaleNumber = 0,
         selectedResample = 0,
         resampleMethod = 0,
-        paddingUniform = 0,
-        paddingLeft = 0,
-        paddingRight = 0,
-        paddingTop = 0,
-        paddingBottom = 0,
-        spriteWidth,
-        spriteHeight,
+        spriteWidth, // Original width
+        spriteHeight, // Original height
         spriteResolution,
-        selectedIndex = 0,
-        uniformIndex = 0,
-        separateIndex = 1,
-        spacing = 0,
+        spacings = 0,
         offset = 0;
 
     function createSpriteSheet(onFinished) {
         try {
             dlg.hide();
 
-            columns = dlg.columns.text;
-            rows = dlg.rows.text;
-            spacing = dlg.spacing.text;
-            offset = dlg.offset.text;
+            columns = parseInt(dlg.columns.text);
+            rows = parseInt(dlg.rows.text);
+            spacings = parseInt(dlg.spacings.text);
+            offset = parseInt(dlg.offset.text);
+
+            // Scaled width and height variable
+            var scaledWidth = spriteWidth * scaleNumber;
+            var scaledHeight = spriteHeight * scaleNumber;
             
-            sheetName = sheetName + "_" + currentDoc.width.value + "x" + currentDoc.height.value;
+            sheetName = sheetName + "_" + scaledWidth + "x" + scaledHeight;
             var startFrame = parseInt(dlg.startFrame.text);
-            
-            // get padding options from dialogue
-            switch (selectedIndex) {
-                case uniformIndex:
-                    paddingUniform = parseInt(dlg.paddingUniform.text);
-                    paddingLeft = paddingTop = paddingRight = paddingBottom = paddingUniform;
-                    break;
-                case separateIndex:
-                    paddingLeft = parseInt(dlg.paddingLeft.text);
-                    paddingRight = parseInt(dlg.paddingRight.text);
-                    paddingTop = parseInt(dlg.paddingTop.text);
-                    paddingBottom = parseInt(dlg.paddingBottom.text);
-                    break;
+
+            // Duplicate original Document
+            var duppedDoc = app.activeDocument.duplicate();
+            // Resize and Resample duplicated Document if scaling is true
+            if (scaleNumber > 1) {
+                duppedDoc.resizeImage(scaledWidth, scaledHeight, spriteResolution, resampleMethod);
             }
 
-            var spriteWidthPadded = spriteWidth + paddingLeft + paddingRight;
-            var spriteHeightPadded = spriteHeight + paddingTop + paddingBottom;
+            // Create temporary Document
+            var tempDoc = app.documents.add(scaledWidth, scaledHeight, spriteResolution, sheetName + "_tmp");
 
-            var spriteSheetDoc = app.documents.add(spriteWidthPadded * columns, spriteHeightPadded * rows, 72, sheetName);
-            var tempDoc = app.documents.add(spriteWidthPadded, spriteHeightPadded, 72, sheetName + "_tmp");
+            // Create sprite sheet Document
+            var spriteSheetDoc = app.documents.add((scaledWidth * columns) + (spacings * (columns - 1)), (scaledHeight * rows) + (spacings * (rows - 1)), spriteResolution, sheetName + "_spritesheet");
 
-            var cellSize = getSelectionShape(spriteWidth, 0, spriteHeight, 0);
-
+            var cellSize = getSelectionShape(scaledWidth, 0, scaledHeight, 0);
+            
             var currentColumn = 0,
                 currentRow = 0;
 
             if (frames > 0) {
                 for (var i = 0; i < frames; i++) {
-                    app.activeDocument = currentDoc;
+                    app.activeDocument = duppedDoc;
                     selectFrame(startFrame + i);
                     app.activeDocument.selection.select(cellSize);
 
@@ -91,14 +81,7 @@ function RetroSpriteGenerator() {
 
                         app.activeDocument = spriteSheetDoc;
 
-                        switch (selectedIndex) {
-                            case uniformIndex:
-                                layer.translate(currentColumn * spriteWidthPadded, currentRow * spriteHeightPadded);
-                                break;
-                            case separateIndex:
-                                layer.translate(currentColumn * spriteWidthPadded + paddingLeft - (paddingLeft + paddingRight) / 2, currentRow * spriteHeightPadded + paddingTop - (paddingTop + paddingBottom) / 2);
-                                break;
-                        }
+                        layer.translate(currentColumn * scaledWidth + spacings, currentRow * scaledHeight + spacings);
                     }
 
                     currentColumn++;
@@ -112,18 +95,18 @@ function RetroSpriteGenerator() {
                 app.activeDocument = tempDoc;
                 app.activeDocument.close(SaveOptions.DONOTSAVECHANGES);
 
-                app.activeDocument = currentDoc;
-                app.activeDocument.selection.deselect();
+                app.activeDocument = duppedDoc;
+                app.activeDocument.close(SaveOptions.DONOTSAVECHANGES);
 
                 app.activeDocument = spriteSheetDoc;
 
+                // Adding offset
+                if (offset > 0) {
+                    app.activeDocument.resizeCanvas(spriteSheetDoc.width + offset * 2, spriteSheetDoc.height + offset * 2, AnchorPosition.MIDDLECENTER);
+                }
+
                 // Remove the default background layer
                 app.activeDocument.artLayers.getByName(app.activeDocument.backgroundLayer.name).remove();
-
-                // Resize and Resample Image
-                if (scaleNumber > 1) {
-                    spriteSheetDoc.resizeImage(spriteSheetDoc.width * scaleNumber, spriteSheetDoc.height * scaleNumber, spriteResolution, resampleMethod);
-                }
 
                 if (onFinished) {
                     onFinished(spriteSheetDoc, currentDoc);
@@ -235,17 +218,6 @@ function RetroSpriteGenerator() {
 
     function createWindow() {
         dlg = new Window('dialog', 'Retro Sprite Generator');
-
-        // dlg.docTypePanel = dlg.add('panel', undefined, 'Document Type');
-        // dlg.docTypePanel.alignment = ['fill', 'top'];
-
-        // dlg.docTypeGroup = dlg.docTypePanel.add('group');
-        // dlg.docTypeGroup.alignment = ['left', 'top'];
-
-        // dlg.docType = dlg.docTypeGroup.add('radiobutton', undefined, 'Frame Animation');
-        // dlg.docType = dlg.docTypeGroup.add('radiobutton', undefined, 'Layers');
-        // dlg.docType = dlg.docTypeGroup.add('radiobutton', undefined, 'Groups');
-        // dlg.docTypeGroup.children[0].value = true;
 
         // Frames
 
@@ -368,75 +340,8 @@ function RetroSpriteGenerator() {
         dlg.offset.characters = 5;
 
         dlg.spacoffGroup.add('StaticText', [0, 0, 60, 25], 'Spacing:');
-        dlg.spacing = dlg.spacoffGroup.add('EditText', undefined, spacing);
-        dlg.spacing.characters = 5;
-        
-
-        // Padding
-
-        dlg.paddingTypePanel = dlg.add('panel', undefined, "Padding Type");
-        dlg.paddingTypePanel.alignment = ['fill', 'top'];
-
-        // Padding Preferences: Padding Type, Save Padding Data (in data file)
-
-        dlg.paddingTypePanel.paddingPrefs = dlg.paddingTypePanel.add('group');
-        dlg.paddingTypePanel.paddingPrefs.alignment = ['left', 'top'];
-
-        dlg.ddPaddingType = dlg.paddingTypePanel.paddingPrefs.add("dropdownlist", undefined, ['Uniform', 'Separate']);
-        dlg.ddPaddingType.alignment = 'left'
-
-        dlg.ddPaddingType.onChange = function () {
-            hideAllPaddingPanel(dlg);
-            selectedIndex = this.selection.index;
-            switch (this.selection.index) {
-                case uniformIndex:
-                    dlg.paddingTypePanel.paddingOptions.text = 'Uniform Options'
-                    dlg.paddingTypePanel.paddingOptions.uniformPaddingOptions.show();
-                    break;
-                case separateIndex:
-                    dlg.paddingTypePanel.paddingOptions.text = 'Separate Options'
-                    dlg.paddingTypePanel.paddingOptions.separatePaddingOptions.show();
-                    break;
-            }
-        }
-
-        dlg.separatePaddingData = dlg.paddingTypePanel.paddingPrefs.add('Checkbox', undefined, 'Separate Padding Data');
-        dlg.separatePaddingData.alignment = 'left'
-
-        // Padding Options
-
-        dlg.paddingTypePanel.paddingOptions = dlg.paddingTypePanel.add('panel', undefined, 'Options');
-        dlg.paddingTypePanel.paddingOptions.alignment = 'fill';
-        dlg.paddingTypePanel.paddingOptions.orientation = 'stack';
-
-        // Uniform Padding Options
-
-        dlg.paddingTypePanel.paddingOptions.uniformPaddingOptions = dlg.paddingTypePanel.paddingOptions.add('group');
-        dlg.paddingTypePanel.paddingOptions.uniformPaddingOptions.alignment = ['left', 'top'];
-
-        dlg.paddingTypePanel.paddingOptions.uniformPaddingOptions.add('StaticText', [0, 0, 60, 25], 'Padding:');
-        dlg.paddingUniform = dlg.paddingTypePanel.paddingOptions.uniformPaddingOptions.add('EditText', undefined, paddingUniform);
-        dlg.paddingTypePanel.paddingOptions.uniformPaddingOptions.visible = (selectedIndex == uniformIndex);
-
-        // Separate Padding Options
-
-        dlg.paddingTypePanel.paddingOptions.separatePaddingOptions = dlg.paddingTypePanel.paddingOptions.add('group');
-        dlg.paddingTypePanel.paddingOptions.separatePaddingOptions.alignment = ['left', 'top'];
-
-        dlg.paddingTypePanel.paddingOptions.separatePaddingOptions.add('StaticText', [0, 0, 60, 25], 'Padding');
-        dlg.paddingTypePanel.paddingOptions.separatePaddingOptions.add('StaticText', [0, 0, 40, 25], 'Left:');
-        dlg.paddingLeft = dlg.paddingTypePanel.paddingOptions.separatePaddingOptions.add('EditText', undefined, paddingLeft);
-
-        dlg.paddingTypePanel.paddingOptions.separatePaddingOptions.add('StaticText', [0, 0, 40, 25], 'Top:');
-        dlg.paddingTop = dlg.paddingTypePanel.paddingOptions.separatePaddingOptions.add('EditText', undefined, paddingTop);
-
-        dlg.paddingTypePanel.paddingOptions.separatePaddingOptions.add('StaticText', [0, 0, 40, 25], 'Right:');
-        dlg.paddingRight = dlg.paddingTypePanel.paddingOptions.separatePaddingOptions.add('EditText', undefined, paddingRight);
-
-        dlg.paddingTypePanel.paddingOptions.separatePaddingOptions.add('StaticText', [0, 0, 40, 25], 'Bottom:');
-        dlg.paddingBottom = dlg.paddingTypePanel.paddingOptions.separatePaddingOptions.add('EditText', undefined, paddingBottom);
-
-        dlg.paddingTypePanel.paddingOptions.separatePaddingOptions.visible = (selectedIndex == separateIndex);
+        dlg.spacings = dlg.spacoffGroup.add('EditText', undefined, spacings);
+        dlg.spacings.characters = 5;
 
         // Action Buttons
 
@@ -444,15 +349,11 @@ function RetroSpriteGenerator() {
         dlg.buttons.cancel = dlg.buttons.add('button', undefined, 'Cancel');
         dlg.buttons.cancel.onClick = exit;
 
-        dlg.buttons.createButton = dlg.buttons.add('button', undefined, 'Generate document');
-        dlg.buttons.createButton.onClick = createSpriteSheet;
-
         dlg.buttons.saveAsPNGBtn = dlg.buttons.add('button', undefined, 'Save as PNG');
         dlg.buttons.saveAsPNGBtn.onClick = saveAsPNG;
 
         dlg.ddScaleNumber.items[selectedScale].selected = true;
         dlg.ddResampleMethod.items[selectedResample].selected = true;
-        dlg.ddPaddingType.items[selectedIndex].selected = true;
 
         dlg.show();
 
@@ -495,9 +396,4 @@ try {
     }
 } catch(e) {
     alert('There is no active document.');
-}
-
-function hideAllPaddingPanel(dlg) {
-    dlg.paddingTypePanel.paddingOptions.uniformPaddingOptions.hide();
-    dlg.paddingTypePanel.paddingOptions.separatePaddingOptions.hide();
 }
