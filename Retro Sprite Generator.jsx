@@ -81,7 +81,7 @@ function RetroSpriteGenerator() {
 
                         app.activeDocument = spriteSheetDoc;
 
-                        layer.translate(currentColumn * scaledWidth + spacings, currentRow * scaledHeight + spacings);
+                        layer.translate((currentColumn * scaledWidth) + (currentColumn * spacings), (currentRow * scaledHeight) + (currentRow * spacings));
                     }
 
                     currentColumn++;
