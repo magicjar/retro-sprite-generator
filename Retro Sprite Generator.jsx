@@ -9,6 +9,7 @@ function RetroSpriteGenerator() {
 
     var dlg,
         sheetName,
+        originalPath,
         frames = getFrameCount(),
         currentDoc,
         columns = 4,
@@ -189,8 +190,12 @@ function RetroSpriteGenerator() {
     }
 
     function saveAsPNG() {
-        var selectedFile = File.saveDialog("Save as PNG", "*.png");
-        if (selectedFile == null) {
+        if (dlg.sameFolder.value == true) {
+            var exportedFile = new File(originalPath + "/" + sheetName + ".png");
+        } else {
+            var exportedFile = File.saveDialog("Save as PNG", "*.png");
+        }
+        if (exportedFile == null) {
             return;
         }
 
@@ -203,7 +208,7 @@ function RetroSpriteGenerator() {
             o.includeProfile = false;
             o.quality = 100;
 
-            spriteSheet.exportDocument(selectedFile, ExportType.SAVEFORWEB, o);
+            spriteSheet.exportDocument(exportedFile, ExportType.SAVEFORWEB, o);
 
             spriteSheet.close(SaveOptions.DONOTSAVECHANGES);
             app.activeDocument = originalDoc;
@@ -352,6 +357,10 @@ function RetroSpriteGenerator() {
         dlg.buttons.saveAsPNGBtn = dlg.buttons.add('button', undefined, 'Save as PNG');
         dlg.buttons.saveAsPNGBtn.onClick = saveAsPNG;
 
+        dlg.sameFolderGroup = dlg.add('group');
+        dlg.sameFolder = dlg.sameFolderGroup.add('Checkbox', undefined, 'Save in same folder');
+        dlg.sameFolder.value = false;
+
         dlg.ddScaleNumber.items[selectedScale].selected = true;
         dlg.ddResampleMethod.items[selectedResample].selected = true;
 
@@ -366,6 +375,7 @@ function RetroSpriteGenerator() {
         }
 
         currentDoc = app.activeDocument;
+        originalPath = currentDoc.path;
         sheetName = currentDoc.name.split('.')[0];
         spriteWidth = currentDoc.width;
         spriteHeight = currentDoc.height;
