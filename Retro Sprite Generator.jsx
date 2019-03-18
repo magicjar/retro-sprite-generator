@@ -21,7 +21,7 @@ function RetroSpriteGenerator() {
         spriteWidth, // Original width
         spriteHeight, // Original height
         spriteResolution,
-        spacings = 0,
+        padding = 0,
         offset = 0;
 
     function createSpriteSheet(onFinished) {
@@ -30,7 +30,7 @@ function RetroSpriteGenerator() {
 
             columns = parseInt(dlg.columns.text);
             rows = parseInt(dlg.rows.text);
-            spacings = parseInt(dlg.spacings.text);
+            padding = parseInt(dlg.padding.text);
             offset = parseInt(dlg.offset.text);
 
             // Scaled width and height variable
@@ -51,7 +51,7 @@ function RetroSpriteGenerator() {
             var tempDoc = app.documents.add(scaledWidth, scaledHeight, spriteResolution, sheetName + "_tmp");
 
             // Create sprite sheet Document
-            var spriteSheetDoc = app.documents.add((scaledWidth * columns) + (spacings * (columns - 1)), (scaledHeight * rows) + (spacings * (rows - 1)), spriteResolution, sheetName + "_spritesheet");
+            var spriteSheetDoc = app.documents.add((scaledWidth * columns) + (padding * (columns - 1)), (scaledHeight * rows) + (padding * (rows - 1)), spriteResolution, sheetName + "_spritesheet");
 
             var cellSize = getSelectionShape(scaledWidth, 0, scaledHeight, 0);
             
@@ -82,7 +82,7 @@ function RetroSpriteGenerator() {
 
                         app.activeDocument = spriteSheetDoc;
 
-                        layer.translate((currentColumn * scaledWidth) + (currentColumn * spacings), (currentRow * scaledHeight) + (currentRow * spacings));
+                        layer.translate((currentColumn * scaledWidth) + (currentColumn * padding), (currentRow * scaledHeight) + (currentRow * padding));
                     }
 
                     currentColumn++;
@@ -257,10 +257,12 @@ function RetroSpriteGenerator() {
         dlg.dimensionsGroup.add('StaticText', [0, 0, 60, 25], 'Columns:');
         dlg.columns = dlg.dimensionsGroup.add('EditText', undefined, columns);
         dlg.columns.characters = 5;
+        dlg.columns.helpTip = 'Number of columns';
 
         dlg.dimensionsGroup.add('StaticText', [0, 0, 60, 25], 'Rows:');
         dlg.rows = dlg.dimensionsGroup.add('EditText', undefined, rows);
         dlg.rows.characters = 5;
+        dlg.rows.helpTip = 'Number of rows';
 
         // Image Scale
 
@@ -330,23 +332,25 @@ function RetroSpriteGenerator() {
             }
         }
 
-        // Spacing & Offset
+        // Spacing
 
-        dlg.spacoffPanel = dlg.add('panel', undefined, "Offset & Spacing");
+        dlg.spacoffPanel = dlg.add('panel', undefined, "Spacing");
         dlg.spacoffPanel.alignment = ['fill', 'top'];
 
-        // Spacing & Offset Preferences
+        // Spacing Preferences
 
-        dlg.spacoffGroup = dlg.spacoffPanel.add('group');
-        dlg.spacoffGroup.alignment = ['left', 'top'];
+        dlg.spacingGroup = dlg.spacoffPanel.add('group');
+        dlg.spacingGroup.alignment = ['left', 'top'];
 
-        dlg.spacoffGroup.add('StaticText', [0, 0, 60, 25], 'Offset:');
-        dlg.offset = dlg.spacoffGroup.add('EditText', undefined, offset);
+        dlg.spacingGroup.add('StaticText', [0, 0, 60, 25], 'Offset:');
+        dlg.offset = dlg.spacingGroup.add('EditText', undefined, offset);
         dlg.offset.characters = 5;
+        dlg.offset.helpTip = 'Outer space around sprite sheet';
 
-        dlg.spacoffGroup.add('StaticText', [0, 0, 60, 25], 'Spacing:');
-        dlg.spacings = dlg.spacoffGroup.add('EditText', undefined, spacings);
-        dlg.spacings.characters = 5;
+        dlg.spacingGroup.add('StaticText', [0, 0, 60, 25], 'Padding:');
+        dlg.padding = dlg.spacingGroup.add('EditText', undefined, padding);
+        dlg.padding.characters = 5;
+        dlg.padding.helpTip = 'Space between each images';
 
         // Action Buttons
 
