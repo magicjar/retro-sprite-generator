@@ -202,8 +202,8 @@ function RetroSpriteGenerator() {
         var finished = function (spriteSheet, originalDoc) {
             var o = new ExportOptionsSaveForWeb();
             o.format = SaveDocumentType.PNG;
-            o.PNG8 = false;
-            o.transparency = true;
+            o.PNG8 = dlg.smallbit.value;
+            o.transparency = dlg.transp.value;
             o.interlaced = false;
             o.includeProfile = false;
             o.quality = 100;
@@ -351,6 +351,21 @@ function RetroSpriteGenerator() {
         dlg.padding = dlg.spacingGroup.add('EditText', undefined, padding);
         dlg.padding.characters = 5;
         dlg.padding.helpTip = 'Space between each images';
+
+        // Options
+
+        dlg.optionsPanel = dlg.add('panel', undefined, "Export Options");
+        dlg.optionsPanel.alignment = ['fill', 'top'];
+
+        // Option Preferences
+        dlg.optionsGroup = dlg.optionsPanel.add('group');
+        dlg.optionsGroup.alignment = ['left', 'top'];
+
+        dlg.transp = dlg.optionsGroup.add('checkbox', undefined, 'Transparency');
+        dlg.transp.value = true;
+
+        dlg.smallbit = dlg.optionsGroup.add('checkbox', undefined, 'Smaller File (8-bit)');
+        dlg.smallbit.value = false;
 
         // Action Buttons
 
