@@ -55,8 +55,14 @@ function RetroSpriteGenerator() {
 
             var cellSize = getSelectionShape(scaledWidth, 0, scaledHeight, 0);
             
-            var currentColumn = 0,
+            if (dlg.startfromtop.value == true) {
+                var currentColumn = 0,
                 currentRow = 0;
+            } else {
+                var currentColumn = 0,
+                currentRow = rows - 1;
+            }
+            
 
             if (frames > 0) {
                 for (var i = 0; i < frames; i++) {
@@ -88,8 +94,13 @@ function RetroSpriteGenerator() {
                     currentColumn++;
 
                     if (currentColumn >= columns) {
-                        currentRow++;
-                        currentColumn = 0;
+                        if (dlg.startfromtop.value == true) {
+                            currentRow++;
+                            currentColumn = 0;
+                        } else {
+                            currentRow--;
+                            currentColumn = 0;
+                        }
                     }
                 }
 
@@ -351,6 +362,20 @@ function RetroSpriteGenerator() {
         dlg.padding = dlg.spacingGroup.add('EditText', undefined, padding);
         dlg.padding.characters = 5;
         dlg.padding.helpTip = 'Space between each images';
+
+        // Start From
+
+        dlg.startFromPanel = dlg.add('panel', undefined, "Start From");
+        dlg.startFromPanel.alignment = ['fill', 'top'];
+
+        // Option Preferences
+        dlg.startFromGroup = dlg.startFromPanel.add('group');
+        dlg.startFromGroup.alignment = ['left', 'top'];
+
+        dlg.startfromtop = dlg.startFromGroup.add('radiobutton', undefined, 'Top');
+        dlg.startfromtop.value = true;
+        dlg.startfrombottom = dlg.startFromGroup.add('radiobutton', undefined, 'Bottom');
+        dlg.startfrombottom.value = false;
 
         // Options
 
