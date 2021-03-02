@@ -36,7 +36,7 @@ function RetroSpriteGenerator() {
             // Scaled width and height variable
             var scaledWidth = spriteWidth * scaleNumber;
             var scaledHeight = spriteHeight * scaleNumber;
-            
+
             sheetName = sheetName + "_" + scaledWidth + "x" + scaledHeight;
             var startFrame = parseInt(dlg.startFrame.text);
 
@@ -54,15 +54,15 @@ function RetroSpriteGenerator() {
             var spriteSheetDoc = app.documents.add((scaledWidth * columns) + (padding * (columns - 1)), (scaledHeight * rows) + (padding * (rows - 1)), spriteResolution, sheetName + "_spritesheet");
 
             var cellSize = getSelectionShape(scaledWidth, 0, scaledHeight, 0);
-            
+
             if (dlg.startfromtop.value == true) {
                 var currentColumn = 0,
-                currentRow = 0;
+                    currentRow = 0;
             } else {
                 var currentColumn = 0,
-                currentRow = rows - 1;
+                    currentRow = rows - 1;
             }
-            
+
 
             if (frames > 0) {
                 for (var i = 0; i < frames; i++) {
@@ -113,16 +113,14 @@ function RetroSpriteGenerator() {
                 app.activeDocument = spriteSheetDoc;
 
                 // Adding offset
-                if (offset > 0) {
+                if (offset > 0)
                     app.activeDocument.resizeCanvas(spriteSheetDoc.width + offset * 2, spriteSheetDoc.height + offset * 2, AnchorPosition.MIDDLECENTER);
-                }
 
                 // Remove the default background layer
                 app.activeDocument.artLayers.getByName(app.activeDocument.backgroundLayer.name).remove();
 
-                if (onFinished) {
+                if (onFinished)
                     onFinished(spriteSheetDoc, currentDoc);
-                }
             }
             exit();
         } catch (ex) {
@@ -132,11 +130,10 @@ function RetroSpriteGenerator() {
 
     // Count the number of frames in the timeline.
     function getFrameCount() {
-        for( var f = 1; f < 999; f++ ) {
-            if ( selectFrame(f) == false ) {
+        for (var f = 1; f < 999; f++)
+            if (selectFrame(f) == false)
                 return f - 1;
-            }
-        }
+
         return 0;
     }
 
@@ -154,7 +151,7 @@ function RetroSpriteGenerator() {
 
             executeAction(idslct, desc, DialogModes.NO);
             return true;
-        } catch(e) {
+        } catch (e) {
             //
         }
         return false;
@@ -201,14 +198,13 @@ function RetroSpriteGenerator() {
     }
 
     function saveAsPNG() {
-        if (dlg.sameFolder.value == true) {
+        if (dlg.sameFolder.value == true)
             var exportedFile = new File(originalPath + "/" + sheetName + ".png");
-        } else {
+        else
             var exportedFile = File.saveDialog("Save as PNG", "*.png");
-        }
-        if (exportedFile == null) {
+
+        if (exportedFile == null)
             return;
-        }
 
         var finished = function (spriteSheet, originalDoc) {
             var o = new ExportOptionsSaveForWeb();
@@ -236,12 +232,10 @@ function RetroSpriteGenerator() {
         dlg = new Window('dialog', 'Retro Sprite Generator');
 
         // Frames
-
         dlg.framePanel = dlg.add('panel', undefined, "Frames");
         dlg.framePanel.alignment = ['fill', 'top'];
 
         // Frame Preferences
-
         dlg.frameGroup = dlg.framePanel.add('group');
         dlg.frameGroup.alignment = ['left', 'top'];
 
@@ -256,12 +250,10 @@ function RetroSpriteGenerator() {
         dlg.endFrame.onChange = onFramesChange;
 
         // Sizes
-
         dlg.dimensionsPanel = dlg.add('panel', undefined, "Sizes");
         dlg.dimensionsPanel.alignment = ['fill', 'top'];
 
         // Size Preferences
-
         dlg.dimensionsGroup = dlg.dimensionsPanel.add('group');
         dlg.dimensionsGroup.alignment = ['left', 'top'];
 
@@ -276,12 +268,10 @@ function RetroSpriteGenerator() {
         dlg.rows.helpTip = 'Number of rows';
 
         // Image Scale
-
         dlg.imageScalePanel = dlg.add('panel', undefined, "Image Scale");
         dlg.imageScalePanel.alignment = ['fill', 'top'];
 
         // Image Scale Preferences
-
         dlg.imageScaleGroup = dlg.imageScalePanel.add('group');
         dlg.imageScaleGroup.alignment = ['left', 'top'];
 
@@ -306,7 +296,6 @@ function RetroSpriteGenerator() {
         }
 
         // Resample Preferences
-
         dlg.imageScaleGroup.add('StaticText', undefined, 'Resample Method:');
         dlg.ddResampleMethod = dlg.imageScaleGroup.add("dropdownlist", undefined, ['Automatic', 'Bicubic', 'Bicubic Automatic', 'Bicubic Sharper', 'Bicubic Smoother', 'Bilinear', 'Nearest Neighbor', 'None', 'Preserve Details']);
 
@@ -344,12 +333,10 @@ function RetroSpriteGenerator() {
         }
 
         // Spacing
-
         dlg.spacoffPanel = dlg.add('panel', undefined, "Spacing");
         dlg.spacoffPanel.alignment = ['fill', 'top'];
 
         // Spacing Preferences
-
         dlg.spacingGroup = dlg.spacoffPanel.add('group');
         dlg.spacingGroup.alignment = ['left', 'top'];
 
@@ -364,7 +351,6 @@ function RetroSpriteGenerator() {
         dlg.padding.helpTip = 'Space between each images';
 
         // Start From
-
         dlg.startFromPanel = dlg.add('panel', undefined, "Start From");
         dlg.startFromPanel.alignment = ['fill', 'top'];
 
@@ -378,7 +364,6 @@ function RetroSpriteGenerator() {
         dlg.startfrombottom.value = false;
 
         // Options
-
         dlg.optionsPanel = dlg.add('panel', undefined, "Export Options");
         dlg.optionsPanel.alignment = ['fill', 'top'];
 
@@ -393,7 +378,6 @@ function RetroSpriteGenerator() {
         dlg.smallbit.value = false;
 
         // Action Buttons
-
         dlg.buttons = dlg.add('group');
         dlg.buttons.cancel = dlg.buttons.add('button', undefined, 'Cancel');
         dlg.buttons.cancel.onClick = exit;
@@ -413,7 +397,7 @@ function RetroSpriteGenerator() {
     }
 
     function init() {
-        if ( frames == 0 ) { 
+        if (frames == 0) {
             alert("No animation frames were found.\nThis script requires minimum of 1 frame animation to create a sprite sheet.");
             return;
         }
@@ -426,7 +410,6 @@ function RetroSpriteGenerator() {
         spriteResolution = currentDoc.resolution;
 
         calculateColRowVals();
-
         createWindow();
     }
 
@@ -439,15 +422,15 @@ try {
             typeUnits: app.preferences.typeUnits,
             rulerUnits: app.preferences.rulerUnits
         };
-    
+
         app.preferences.typeUnits = TypeUnits.PIXELS;
         app.preferences.rulerUnits = Units.PIXELS;
-    
+
         var spriteGenerator = new RetroSpriteGenerator();
-    
+
         app.preferences.typeUnits = savedPrefs.typeUnits;
         app.preferences.rulerUnits = savedPrefs.rulerUnits;
     }
-} catch(e) {
+} catch (e) {
     alert('There is no active document.');
 }
