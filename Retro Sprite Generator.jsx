@@ -29,8 +29,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 
 var w,
-    spriteTab,
-    singleTab,
     tabIndex = 0,
     sheetName,
     originalPath,
@@ -100,23 +98,25 @@ function createSpriteSheet(onFinished) {
 
         w.hide();
 
-        columns = parseInt(w.columns.text);
-        rows = parseInt(w.rows.text);
-        padding = parseInt(w.padding.text);
-        offset = parseInt(w.offset.text);
+        // Parse forms
+        columns = parseInt(w.tabGroup.spriteTab.columns.text);
+        rows = parseInt(w.tabGroup.spriteTab.rows.text);
+        padding = parseInt(w.tabGroup.spriteTab.padding.text);
+        offset = parseInt(w.tabGroup.spriteTab.offset.text);
+        var startFrame = parseInt(w.tabGroup.spriteTab.startFrame.text);
 
         // Scaled width and height variable
         var scaledWidth = spriteWidth * scaleNumber;
         var scaledHeight = spriteHeight * scaleNumber;
 
-        sheetName = sheetName + "_" + scaledWidth + "x" + scaledHeight;
-        var startFrame = parseInt(w.startFrame.text);
+        // Create namming
+        sheetName = sheetName + "_" + parseInt(scaledWidth) + "x" + parseInt(scaledHeight);
 
         // Duplicate original Document
         var duppedDoc = app.activeDocument.duplicate();
         // Resize and Resample duplicated Document if scaling is true
         if (scaleNumber > 1) {
-            duppedDoc.resizeImage(scaledWidth, scaledHeight, spriteResolution, resampleMethod);
+            duppedDoc.resizeImage(scaledWidth, scaledHeight, spriteResolution, resampleMethod, sheetName + "_dupped");
         }
 
         // Create temporary Document
@@ -127,14 +127,13 @@ function createSpriteSheet(onFinished) {
 
         var cellSize = getSelectionShape(scaledWidth, 0, scaledHeight, 0);
 
-        if (w.startfromtop.value == true) {
+        if (w.tabGroup.spriteTab.startFromTop.value == true) {
             var currentColumn = 0,
                 currentRow = 0;
         } else {
             var currentColumn = 0,
                 currentRow = rows - 1;
         }
-
 
         if (frames > 0) {
             for (var i = 0; i < frames; i++) {
@@ -166,7 +165,7 @@ function createSpriteSheet(onFinished) {
                 currentColumn++;
 
                 if (currentColumn >= columns) {
-                    if (w.startfromtop.value == true) {
+                    if (w.tabGroup.spriteTab.startFromTop.value == true) {
                         currentRow++;
                         currentColumn = 0;
                     } else {
@@ -193,12 +192,11 @@ function createSpriteSheet(onFinished) {
 
             if (onFinished) {
                 onFinished(spriteSheetDoc, currentDoc);
-
-                app.preferences.typeUnits = savedPrefs.typeUnits;
-                app.preferences.rulerUnits = savedPrefs.rulerUnits;
             }
+
+            app.preferences.typeUnits = savedPrefs.typeUnits;
+            app.preferences.rulerUnits = savedPrefs.rulerUnits;
         }
-        exit();
     } catch (ex) {
         alert("An error occured, please submit a bug report. Error: " + ex);
     }
@@ -305,12 +303,12 @@ function calculateColRowVals() {
 }
 
 function onFramesChange(e) {
-    frames = parseInt(w.endFrame.text) - parseInt(w.startFrame.text) + 1;
+    frames = parseInt(w.tabGroup.spriteTab.endFrame.text) - parseInt(w.tabGroup.spriteTab.startFrame.text) + 1;
 
     calculateColRowVals();
 
-    w.rows.text = rows;
-    w.columns.text = columns;
+    w.tabGroup.spriteTab.row.text = rows;
+    w.tabGroup.spriteTab.columns.text = columns;
 }
 
 function saveAsPNG() {
@@ -349,6 +347,8 @@ function saveAsPNG() {
             createSpriteSheet(finished);
             break;
     }
+
+    exit();
 }
 
 function exit() {
@@ -358,10 +358,10 @@ function exit() {
 function createWindow() {
     w = new Window('dialog', 'Retro Sprite Generator', undefined, { closeButton: true });
 
-    tabGroup = w.add('tabbedpanel');
-    tabGroup.alignChildren = ['fill', 'fill'];
-    tabGroup.onChange = function () {
-        switch (tabGroup.selection.text) {
+    w.tabGroup = w.add('tabbedpanel');
+    w.tabGroup.alignChildren = ['fill', 'fill'];
+    w.tabGroup.onChange = function () {
+        switch (w.tabGroup.selection.text) {
             case "Spritesheet Export":
                 tabIndex = 0;
                 break;
@@ -371,9 +371,9 @@ function createWindow() {
         }
     }
 
-    drawSpritesheetGUI(tabGroup);
+    drawSpritesheetGUI();
 
-    drawSingleImageGUI(tabGroup);
+    drawSingleImageGUI();
 
     // Options
     var optionsPanel = w.add('panel', undefined, "Export Options");
@@ -401,62 +401,62 @@ function createWindow() {
     sameFolder = sameFolderGroup.add('Checkbox', undefined, 'Save in same folder');
     sameFolder.value = false;
 
-    tabGroup.selection = tabIndex;
+    w.tabGroup.selection = tabIndex;
 
     w.show();
 }
 
-function drawSpritesheetGUI(tabGroup) {
-    spriteTab = tabGroup.add('tab', undefined, 'Spritesheet Export');
+function drawSpritesheetGUI() {
+    w.tabGroup.spriteTab = w.tabGroup.add('tab', undefined, 'Spritesheet Export');
 
     // Frames
-    spriteTab.framePanel = spriteTab.add('panel', undefined, "Frames");
-    spriteTab.framePanel.alignment = ['fill', 'top'];
+    w.tabGroup.spriteTab.framePanel = w.tabGroup.spriteTab.add('panel', undefined, "Frames");
+    w.tabGroup.spriteTab.framePanel.alignment = ['fill', 'top'];
 
     // Frame Preferences
-    spriteTab.frameGroup = spriteTab.framePanel.add('group');
-    spriteTab.frameGroup.alignment = ['left', 'top'];
+    w.tabGroup.spriteTab.frameGroup = w.tabGroup.spriteTab.framePanel.add('group');
+    w.tabGroup.spriteTab.frameGroup.alignment = ['left', 'top'];
 
-    spriteTab.frameGroup.add('StaticText', [0, 0, 60, 25], 'Start frame:');
-    spriteTab.startFrame = spriteTab.frameGroup.add('EditText', undefined, 1);
-    spriteTab.startFrame.characters = 5;
-    spriteTab.startFrame.onChange = onFramesChange;
+    w.tabGroup.spriteTab.frameGroup.add('StaticText', [0, 0, 60, 25], 'Start frame:');
+    w.tabGroup.spriteTab.startFrame = w.tabGroup.spriteTab.frameGroup.add('EditText', undefined, 1);
+    w.tabGroup.spriteTab.startFrame.characters = 5;
+    w.tabGroup.spriteTab.startFrame.onChange = onFramesChange;
 
-    spriteTab.frameGroup.add('StaticText', [0, 0, 60, 25], 'End frame:');
-    spriteTab.endFrame = spriteTab.frameGroup.add('EditText', undefined, frames);
-    spriteTab.endFrame.characters = 5;
-    spriteTab.endFrame.onChange = onFramesChange;
+    w.tabGroup.spriteTab.frameGroup.add('StaticText', [0, 0, 60, 25], 'End frame:');
+    w.tabGroup.spriteTab.endFrame = w.tabGroup.spriteTab.frameGroup.add('EditText', undefined, frames);
+    w.tabGroup.spriteTab.endFrame.characters = 5;
+    w.tabGroup.spriteTab.endFrame.onChange = onFramesChange;
 
     // Sizes
-    spriteTab.dimensionsPanel = spriteTab.add('panel', undefined, "Sizes");
-    spriteTab.dimensionsPanel.alignment = ['fill', 'top'];
+    w.tabGroup.spriteTab.dimensionsPanel = w.tabGroup.spriteTab.add('panel', undefined, "Sizes");
+    w.tabGroup.spriteTab.dimensionsPanel.alignment = ['fill', 'top'];
 
     // Size Preferences
-    spriteTab.dimensionsGroup = spriteTab.dimensionsPanel.add('group');
-    spriteTab.dimensionsGroup.alignment = ['left', 'top'];
+    w.tabGroup.spriteTab.dimensionsGroup = w.tabGroup.spriteTab.dimensionsPanel.add('group');
+    w.tabGroup.spriteTab.dimensionsGroup.alignment = ['left', 'top'];
 
-    spriteTab.dimensionsGroup.add('StaticText', [0, 0, 60, 25], 'Columns:');
-    spriteTab.columns = spriteTab.dimensionsGroup.add('EditText', undefined, columns);
-    spriteTab.columns.characters = 5;
-    spriteTab.columns.helpTip = 'Number of columns';
+    w.tabGroup.spriteTab.dimensionsGroup.add('StaticText', [0, 0, 60, 25], 'Columns:');
+    w.tabGroup.spriteTab.columns = w.tabGroup.spriteTab.dimensionsGroup.add('EditText', undefined, columns);
+    w.tabGroup.spriteTab.columns.characters = 5;
+    w.tabGroup.spriteTab.columns.helpTip = 'Number of columns';
 
-    spriteTab.dimensionsGroup.add('StaticText', [0, 0, 60, 25], 'Rows:');
-    spriteTab.rows = spriteTab.dimensionsGroup.add('EditText', undefined, rows);
-    spriteTab.rows.characters = 5;
-    spriteTab.rows.helpTip = 'Number of rows';
+    w.tabGroup.spriteTab.dimensionsGroup.add('StaticText', [0, 0, 60, 25], 'Rows:');
+    w.tabGroup.spriteTab.rows = w.tabGroup.spriteTab.dimensionsGroup.add('EditText', undefined, rows);
+    w.tabGroup.spriteTab.rows.characters = 5;
+    w.tabGroup.spriteTab.rows.helpTip = 'Number of rows';
 
     // Image Scale
-    spriteTab.imageScalePanel = spriteTab.add('panel', undefined, "Image Scale");
-    spriteTab.imageScalePanel.alignment = ['fill', 'top'];
+    w.tabGroup.spriteTab.imageScalePanel = w.tabGroup.spriteTab.add('panel', undefined, "Image Scale");
+    w.tabGroup.spriteTab.imageScalePanel.alignment = ['fill', 'top'];
 
     // Image Scale Preferences
-    spriteTab.imageScaleGroup = spriteTab.imageScalePanel.add('group');
-    spriteTab.imageScaleGroup.alignment = ['left', 'top'];
+    w.tabGroup.spriteTab.imageScaleGroup = w.tabGroup.spriteTab.imageScalePanel.add('group');
+    w.tabGroup.spriteTab.imageScaleGroup.alignment = ['left', 'top'];
 
-    spriteTab.imageScaleGroup.add('StaticText', [0, 0, 60, 25], 'Scale:');
-    spriteTab.ddScaleNumber = spriteTab.imageScaleGroup.add("dropdownlist", undefined, ['Default', '@2x', '@3x']);
+    w.tabGroup.spriteTab.imageScaleGroup.add('StaticText', [0, 0, 60, 25], 'Scale:');
+    w.tabGroup.spriteTab.ddScaleNumber = w.tabGroup.spriteTab.imageScaleGroup.add("dropdownlist", undefined, ['Default', '@2x', '@3x']);
 
-    spriteTab.ddScaleNumber.onChange = function () {
+    w.tabGroup.spriteTab.ddScaleNumber.onChange = function () {
         // get scale number
         selectedScale = this.selection.index + 1;
 
@@ -474,10 +474,10 @@ function drawSpritesheetGUI(tabGroup) {
     }
 
     // Resample Preferences
-    spriteTab.imageScaleGroup.add('StaticText', undefined, 'Resample Method:');
-    spriteTab.ddResampleMethod = spriteTab.imageScaleGroup.add("dropdownlist", undefined, ['Automatic', 'Bicubic', 'Bicubic Automatic', 'Bicubic Sharper', 'Bicubic Smoother', 'Bilinear', 'Nearest Neighbor', 'None', 'Preserve Details']);
+    w.tabGroup.spriteTab.imageScaleGroup.add('StaticText', undefined, 'Resample Method:');
+    w.tabGroup.spriteTab.ddResampleMethod = w.tabGroup.spriteTab.imageScaleGroup.add("dropdownlist", undefined, ['Automatic', 'Bicubic', 'Bicubic Automatic', 'Bicubic Sharper', 'Bicubic Smoother', 'Bilinear', 'Nearest Neighbor', 'None', 'Preserve Details']);
 
-    spriteTab.ddResampleMethod.onChange = function () {
+    w.tabGroup.spriteTab.ddResampleMethod.onChange = function () {
         selectedResample = this.selection.index;
         switch (selectedResample) {
             case 0:
@@ -511,57 +511,57 @@ function drawSpritesheetGUI(tabGroup) {
     }
 
     // Spacing
-    spriteTab.spacoffPanel = spriteTab.add('panel', undefined, "Spacing");
-    spriteTab.spacoffPanel.alignment = ['fill', 'top'];
+    w.tabGroup.spriteTab.spacoffPanel = w.tabGroup.spriteTab.add('panel', undefined, "Spacing");
+    w.tabGroup.spriteTab.spacoffPanel.alignment = ['fill', 'top'];
 
     // Spacing Preferences
-    spriteTab.spacingGroup = spriteTab.spacoffPanel.add('group');
-    spriteTab.spacingGroup.alignment = ['left', 'top'];
+    w.tabGroup.spriteTab.spacingGroup = w.tabGroup.spriteTab.spacoffPanel.add('group');
+    w.tabGroup.spriteTab.spacingGroup.alignment = ['left', 'top'];
 
-    spriteTab.spacingGroup.add('StaticText', [0, 0, 60, 25], 'Offset:');
-    spriteTab.offset = spriteTab.spacingGroup.add('EditText', undefined, offset);
-    spriteTab.offset.characters = 5;
-    spriteTab.offset.helpTip = 'Outer space around sprite sheet';
+    w.tabGroup.spriteTab.spacingGroup.add('StaticText', [0, 0, 60, 25], 'Offset:');
+    w.tabGroup.spriteTab.offset = w.tabGroup.spriteTab.spacingGroup.add('EditText', undefined, offset);
+    w.tabGroup.spriteTab.offset.characters = 5;
+    w.tabGroup.spriteTab.offset.helpTip = 'Outer space around sprite sheet';
 
-    spriteTab.spacingGroup.add('StaticText', [0, 0, 60, 25], 'Padding:');
-    spriteTab.padding = spriteTab.spacingGroup.add('EditText', undefined, padding);
-    spriteTab.padding.characters = 5;
-    spriteTab.padding.helpTip = 'Space between each images';
+    w.tabGroup.spriteTab.spacingGroup.add('StaticText', [0, 0, 60, 25], 'Padding:');
+    w.tabGroup.spriteTab.padding = w.tabGroup.spriteTab.spacingGroup.add('EditText', undefined, padding);
+    w.tabGroup.spriteTab.padding.characters = 5;
+    w.tabGroup.spriteTab.padding.helpTip = 'Space between each images';
 
     // Start From
-    spriteTab.startFromPanel = spriteTab.add('panel', undefined, "Start From");
-    spriteTab.startFromPanel.alignment = ['fill', 'top'];
+    w.tabGroup.spriteTab.startFromPanel = w.tabGroup.spriteTab.add('panel', undefined, "Start From");
+    w.tabGroup.spriteTab.startFromPanel.alignment = ['fill', 'top'];
 
     // Option Preferences
-    spriteTab.startFromGroup = spriteTab.startFromPanel.add('group');
-    spriteTab.startFromGroup.alignment = ['left', 'top'];
+    w.tabGroup.spriteTab.startFromGroup = w.tabGroup.spriteTab.startFromPanel.add('group');
+    w.tabGroup.spriteTab.startFromGroup.alignment = ['left', 'top'];
 
-    spriteTab.startfromtop = spriteTab.startFromGroup.add('radiobutton', undefined, 'Top');
-    spriteTab.startfromtop.value = true;
-    spriteTab.startfrombottom = spriteTab.startFromGroup.add('radiobutton', undefined, 'Bottom');
-    spriteTab.startfrombottom.value = false;
+    w.tabGroup.spriteTab.startFromTop = w.tabGroup.spriteTab.startFromGroup.add('radiobutton', undefined, 'Top');
+    w.tabGroup.spriteTab.startFromTop.value = true;
+    w.tabGroup.spriteTab.startFromBottom = w.tabGroup.spriteTab.startFromGroup.add('radiobutton', undefined, 'Bottom');
+    w.tabGroup.spriteTab.startFromBottom.value = false;
 
-    spriteTab.ddScaleNumber.items[selectedScale].selected = true;
-    spriteTab.ddResampleMethod.items[selectedResample].selected = true;
+    w.tabGroup.spriteTab.ddScaleNumber.items[selectedScale].selected = true;
+    w.tabGroup.spriteTab.ddResampleMethod.items[selectedResample].selected = true;
 }
 
-function drawSingleImageGUI(tabGroup) {
-    singleTab = tabGroup.add('tab', undefined, 'Single Export');
+function drawSingleImageGUI() {
+    w.tabGroup.singleTab = w.tabGroup.add('tab', undefined, 'Single Export');
 
     // Image Scale
-    singleTab.exportTypePanel = singleTab.add('panel', undefined, "Export Mode");
-    singleTab.exportTypePanel.alignment = ['fill', 'top'];
+    w.tabGroup.singleTab.exportTypePanel = w.tabGroup.singleTab.add('panel', undefined, "Export Mode");
+    w.tabGroup.singleTab.exportTypePanel.alignment = ['fill', 'top'];
 
     // Image Scale Preferences
-    singleTab.exportTypeGroup = singleTab.exportTypePanel.add('group');
-    singleTab.exportTypeGroup.alignment = ['left', 'top'];
+    w.tabGroup.singleTab.exportTypeGroup = w.tabGroup.singleTab.exportTypePanel.add('group');
+    w.tabGroup.singleTab.exportTypeGroup.alignment = ['left', 'top'];
 
-    singleTab.exportTypeGroup.add('StaticText', [0, 0, 60, 25], 'Export:');
-    singleTab.ddTypeIndex = singleTab.exportTypeGroup.add("dropdownlist", undefined, ['Layers', 'Groups']);
+    w.tabGroup.singleTab.exportTypeGroup.add('StaticText', [0, 0, 60, 25], 'Export:');
+    w.tabGroup.singleTab.ddTypeIndex = w.tabGroup.singleTab.exportTypeGroup.add("dropdownlist", undefined, ['Layers', 'Groups']);
 
-    singleTab.ddTypeIndex.onChange = function () {
+    w.tabGroup.singleTab.ddTypeIndex.onChange = function () {
         singleExportType = this.selection.index;
     }
 
-    singleTab.ddTypeIndex.items[singleExportType].selected = true;
+    w.tabGroup.singleTab.ddTypeIndex.items[singleExportType].selected = true;
 }
