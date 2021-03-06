@@ -325,9 +325,9 @@ function saveAsPNG() {
 
         var o = new ExportOptionsSaveForWeb();
         o.format = SaveDocumentType.PNG;
-        o.PNG8 = smallbit.value;
-        o.transparency = transparency.value;
-        o.interlaced = false;
+        o.PNG8 = w.optionsPanel.optionsGroup.smallbit.value;
+        o.transparency = w.optionsPanel.optionsGroup.transparency.value;
+        o.interlaced = w.optionsPanel.optionsGroup.transparency.value;
         o.includeProfile = false;
         o.quality = 100;
 
@@ -377,18 +377,21 @@ function createWindow() {
     drawSingleImageGUI();
 
     // Options
-    var optionsPanel = w.add('panel', undefined, "Export Options");
-    optionsPanel.alignment = ['fill', 'fill'];
+    w.optionsPanel = w.add('panel', undefined, "Export Options");
+    w.optionsPanel.alignment = ['fill', 'fill'];
 
     // Option Preferences
-    var optionsGroup = optionsPanel.add('group');
-    optionsGroup.alignment = ['left', 'top'];
+    w.optionsPanel.optionsGroup = w.optionsPanel.add('group');
+    w.optionsPanel.optionsGroup.alignment = ['left', 'top'];
 
-    transparency = optionsGroup.add('checkbox', undefined, 'Transparency');
-    transparency.value = true;
+    w.optionsPanel.optionsGroup.interlaced = w.optionsPanel.optionsGroup.add('checkbox', undefined, 'Interlaced');
+    w.optionsPanel.optionsGroup.interlaced.value = false;
 
-    smallbit = optionsGroup.add('checkbox', undefined, 'Smaller File (8-bit)');
-    smallbit.value = false;
+    w.optionsPanel.optionsGroup.transparency = w.optionsPanel.optionsGroup.add('checkbox', undefined, 'Transparency');
+    w.optionsPanel.optionsGroup.transparency.value = true;
+
+    w.optionsPanel.optionsGroup.smallbit = w.optionsPanel.optionsGroup.add('checkbox', undefined, 'Smaller File (8-bit)');
+    w.optionsPanel.optionsGroup.smallbit.value = false;
 
     // Action Buttons
     var buttons = w.add('group');
