@@ -1,7 +1,7 @@
 /**
  * Title: Retro Sprite Generator
- * Author: @dawntale
- * Url: https://github.com/dawntale
+ * Author: @magicjar
+ * Url: https://github.com/magicjar
 */
 
 /*
