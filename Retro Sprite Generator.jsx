@@ -4,9 +4,54 @@
  * Url: https://github.com/dawntale
 */
 
-#target photoshop
-function RetroSpriteGenerator() {
+/*
 
+// BEGIN__HARVEST_EXCEPTION_ZSTRING
+
+<javascriptresource>
+    <name>$$$/JavaScripts/RetroSpriteGenerator/Menu=Retro Sprite Generator...</name>
+    <category>scriptexport</category>
+    <menu>export</menu>
+    <enableinfo>true</enableinfo>
+    <eventid>cf34b502-2013-4d07-8431-1dfd634ee0cd</eventid>
+</javascriptresource>
+
+// END__HARVEST_EXCEPTION_ZSTRING
+
+*/
+
+
+#target photoshop
+
+
+///////////////////////////////////////////////////////////////////////////////
+// First Checkpoint
+///////////////////////////////////////////////////////////////////////////////
+
+try {
+    if (app && app.activeDocument) {
+        var savedPrefs = {
+            typeUnits: app.preferences.typeUnits,
+            rulerUnits: app.preferences.rulerUnits
+        };
+
+        app.preferences.typeUnits = TypeUnits.PIXELS;
+        app.preferences.rulerUnits = Units.PIXELS;
+
+        var spriteGenerator = new RetroSpriteGenerator();
+
+        app.preferences.typeUnits = savedPrefs.typeUnits;
+        app.preferences.rulerUnits = savedPrefs.rulerUnits;
+    }
+} catch (e) {
+    alert('There is no active document.');
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Functions
+///////////////////////////////////////////////////////////////////////////////
+
+function RetroSpriteGenerator() {
     var w,
         spriteTab,
         singleTab,
@@ -30,6 +75,28 @@ function RetroSpriteGenerator() {
         sameFolder,
         smallbit,
         transparency;
+
+    ///////////////////////////////////////////////////////////////////////////////
+    // First Checkpoint
+    ///////////////////////////////////////////////////////////////////////////////
+
+    init();
+
+    function init() {
+        if (frames == 0) {
+            tabIndex = 1;
+        }
+
+        currentDoc = app.activeDocument;
+        originalPath = currentDoc.path;
+        sheetName = originalDocName = currentDoc.name.split('.')[0];
+        spriteWidth = currentDoc.width;
+        spriteHeight = currentDoc.height;
+        spriteResolution = currentDoc.resolution;
+
+        calculateColRowVals();
+        createWindow();
+    }
 
     function createSpriteSheet(onFinished) {
         try {
@@ -501,41 +568,4 @@ function RetroSpriteGenerator() {
 
         singleTab.ddTypeIndex.items[singleExportType].selected = true;
     }
-
-    function init() {
-        if (frames == 0) {
-            tabIndex = 1;
-        }
-
-        currentDoc = app.activeDocument;
-        originalPath = currentDoc.path;
-        sheetName = originalDocName = currentDoc.name.split('.')[0];
-        spriteWidth = currentDoc.width;
-        spriteHeight = currentDoc.height;
-        spriteResolution = currentDoc.resolution;
-
-        calculateColRowVals();
-        createWindow();
-    }
-
-    init();
-}
-
-try {
-    if (app && app.activeDocument) {
-        var savedPrefs = {
-            typeUnits: app.preferences.typeUnits,
-            rulerUnits: app.preferences.rulerUnits
-        };
-
-        app.preferences.typeUnits = TypeUnits.PIXELS;
-        app.preferences.rulerUnits = Units.PIXELS;
-
-        var spriteGenerator = new RetroSpriteGenerator();
-
-        app.preferences.typeUnits = savedPrefs.typeUnits;
-        app.preferences.rulerUnits = savedPrefs.rulerUnits;
-    }
-} catch (e) {
-    alert('There is no active document.');
 }
