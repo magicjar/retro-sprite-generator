@@ -359,7 +359,8 @@ function createWindow() {
     w = new Window('dialog', 'Retro Sprite Generator', undefined, { closeButton: true });
 
     w.tabGroup = w.add('tabbedpanel');
-    w.tabGroup.alignChildren = ['fill', 'fill'];
+    w.tabGroup.alignChildren = 'fill';
+
     w.tabGroup.onChange = function () {
         switch (w.tabGroup.selection.text) {
             case "Spritesheet Export":
@@ -377,7 +378,7 @@ function createWindow() {
 
     // Options
     var optionsPanel = w.add('panel', undefined, "Export Options");
-    optionsPanel.alignment = ['fill', 'top'];
+    optionsPanel.alignment = ['fill', 'fill'];
 
     // Option Preferences
     var optionsGroup = optionsPanel.add('group');
@@ -411,11 +412,13 @@ function drawSpritesheetGUI() {
 
     // Frames
     w.tabGroup.spriteTab.framePanel = w.tabGroup.spriteTab.add('panel', undefined, "Frames");
-    w.tabGroup.spriteTab.framePanel.alignment = ['fill', 'top'];
+    w.tabGroup.spriteTab.framePanel.alignChildren = 'fill';
+    w.tabGroup.spriteTab.framePanel.alignment = 'fill';
 
     // Frame Preferences
     w.tabGroup.spriteTab.frameGroup = w.tabGroup.spriteTab.framePanel.add('group');
-    w.tabGroup.spriteTab.frameGroup.alignment = ['left', 'top'];
+    w.tabGroup.spriteTab.frameGroup.alignChildren = ['fill', 'fill'];
+    w.tabGroup.spriteTab.frameGroup.alignment = ['fill', 'top'];
 
     w.tabGroup.spriteTab.frameGroup.add('StaticText', [0, 0, 60, 25], 'Start frame:');
     w.tabGroup.spriteTab.startFrame = w.tabGroup.spriteTab.frameGroup.add('EditText', undefined, 1);
@@ -429,11 +432,13 @@ function drawSpritesheetGUI() {
 
     // Sizes
     w.tabGroup.spriteTab.dimensionsPanel = w.tabGroup.spriteTab.add('panel', undefined, "Sizes");
-    w.tabGroup.spriteTab.dimensionsPanel.alignment = ['fill', 'top'];
+    w.tabGroup.spriteTab.dimensionsPanel.alignChildren = 'fill';
+    w.tabGroup.spriteTab.dimensionsPanel.alignment = 'fill';
 
     // Size Preferences
     w.tabGroup.spriteTab.dimensionsGroup = w.tabGroup.spriteTab.dimensionsPanel.add('group');
-    w.tabGroup.spriteTab.dimensionsGroup.alignment = ['left', 'top'];
+    w.tabGroup.spriteTab.dimensionsGroup.alignChildren = ['fill', 'fill'];
+    w.tabGroup.spriteTab.dimensionsGroup.alignment = ['fill', 'top'];
 
     w.tabGroup.spriteTab.dimensionsGroup.add('StaticText', [0, 0, 60, 25], 'Columns:');
     w.tabGroup.spriteTab.columns = w.tabGroup.spriteTab.dimensionsGroup.add('EditText', undefined, columns);
@@ -447,11 +452,13 @@ function drawSpritesheetGUI() {
 
     // Image Scale
     w.tabGroup.spriteTab.imageScalePanel = w.tabGroup.spriteTab.add('panel', undefined, "Image Scale");
-    w.tabGroup.spriteTab.imageScalePanel.alignment = ['fill', 'top'];
+    w.tabGroup.spriteTab.imageScalePanel.alignChildren = 'fill';
+    w.tabGroup.spriteTab.imageScalePanel.alignment = 'fill';
 
     // Image Scale Preferences
     w.tabGroup.spriteTab.imageScaleGroup = w.tabGroup.spriteTab.imageScalePanel.add('group');
-    w.tabGroup.spriteTab.imageScaleGroup.alignment = ['left', 'top'];
+    w.tabGroup.spriteTab.imageScaleGroup.alignChildren = ['fill', 'fill'];
+    w.tabGroup.spriteTab.imageScaleGroup.alignment = ['fill', 'top'];
 
     w.tabGroup.spriteTab.imageScaleGroup.add('StaticText', [0, 0, 60, 25], 'Scale:');
     w.tabGroup.spriteTab.ddScaleNumber = w.tabGroup.spriteTab.imageScaleGroup.add("dropdownlist", undefined, ['Default', '@2x', '@3x']);
@@ -512,11 +519,13 @@ function drawSpritesheetGUI() {
 
     // Spacing
     w.tabGroup.spriteTab.spacoffPanel = w.tabGroup.spriteTab.add('panel', undefined, "Spacing");
-    w.tabGroup.spriteTab.spacoffPanel.alignment = ['fill', 'top'];
+    w.tabGroup.spriteTab.spacoffPanel.alignChildren = 'fill';
+    w.tabGroup.spriteTab.spacoffPanel.alignment = 'fill';
 
     // Spacing Preferences
     w.tabGroup.spriteTab.spacingGroup = w.tabGroup.spriteTab.spacoffPanel.add('group');
-    w.tabGroup.spriteTab.spacingGroup.alignment = ['left', 'top'];
+    w.tabGroup.spriteTab.spacingGroup.alignChildren = ['fill', 'fill'];
+    w.tabGroup.spriteTab.spacingGroup.alignment = ['fill', 'top'];
 
     w.tabGroup.spriteTab.spacingGroup.add('StaticText', [0, 0, 60, 25], 'Offset:');
     w.tabGroup.spriteTab.offset = w.tabGroup.spriteTab.spacingGroup.add('EditText', undefined, offset);
@@ -530,11 +539,13 @@ function drawSpritesheetGUI() {
 
     // Start From
     w.tabGroup.spriteTab.startFromPanel = w.tabGroup.spriteTab.add('panel', undefined, "Start From");
-    w.tabGroup.spriteTab.startFromPanel.alignment = ['fill', 'top'];
+    w.tabGroup.spriteTab.startFromPanel.alignChildren = 'fill';
+    w.tabGroup.spriteTab.startFromPanel.alignment = 'fill';
 
     // Option Preferences
     w.tabGroup.spriteTab.startFromGroup = w.tabGroup.spriteTab.startFromPanel.add('group');
-    w.tabGroup.spriteTab.startFromGroup.alignment = ['left', 'top'];
+    w.tabGroup.spriteTab.startFromGroup.alignChildren = ['fill', 'fill'];
+    w.tabGroup.spriteTab.startFromGroup.alignment = ['fill', 'top'];
 
     w.tabGroup.spriteTab.startFromTop = w.tabGroup.spriteTab.startFromGroup.add('radiobutton', undefined, 'Top');
     w.tabGroup.spriteTab.startFromTop.value = true;
@@ -550,11 +561,13 @@ function drawSingleImageGUI() {
 
     // Image Scale
     w.tabGroup.singleTab.exportTypePanel = w.tabGroup.singleTab.add('panel', undefined, "Export Mode");
-    w.tabGroup.singleTab.exportTypePanel.alignment = ['fill', 'top'];
+    w.tabGroup.singleTab.exportTypePanel.alignChildren = 'fill';
+    w.tabGroup.singleTab.exportTypePanel.alignment = 'fill';
 
     // Image Scale Preferences
     w.tabGroup.singleTab.exportTypeGroup = w.tabGroup.singleTab.exportTypePanel.add('group');
-    w.tabGroup.singleTab.exportTypeGroup.alignment = ['left', 'top'];
+    w.tabGroup.singleTab.exportTypeGroup.alignChildren = ['fill', 'fill'];
+    w.tabGroup.singleTab.exportTypeGroup.alignment = ['fill', 'top'];
 
     w.tabGroup.singleTab.exportTypeGroup.add('StaticText', [0, 0, 60, 25], 'Export:');
     w.tabGroup.singleTab.ddTypeIndex = w.tabGroup.singleTab.exportTypeGroup.add("dropdownlist", undefined, ['Layers', 'Groups']);
