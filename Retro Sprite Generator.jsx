@@ -197,6 +197,9 @@ function createSpriteSheet(onFinished) {
             app.preferences.typeUnits = savedPrefs.typeUnits;
             app.preferences.rulerUnits = savedPrefs.rulerUnits;
         }
+
+        spriteSheetDoc.close(SaveOptions.DONOTSAVECHANGES);
+        app.activeDocument = currentDoc;
     } catch (ex) {
         alert("An error occured, please submit a bug report. Error: " + ex);
     }
@@ -208,31 +211,12 @@ function createSingleImage(onFinished) {
 
         var duppedDoc = app.activeDocument.duplicate();
         app.activeDocument = duppedDoc;
-
-        var layerGroups = duppedDoc.layerSets;
         var tmpName = sheetName;
 
-        if (singleExportType == 0) {
-            alert("This feature has not been implemented yet.");
-            duppedDoc.close(SaveOptions.DONOTSAVECHANGES);
-            app.activeDocument = currentDoc;
-            return;
-        } else if (singleExportType == 1) {
-            for (var i = 0; i < layerGroups.length; i++) {
-
-                for (var j = 0; j < layerGroups.length; j++) {
-                    layerGroups[j].visible = false;
-                }
-
-                layerGroups[i].visible = true;
-
-                sheetName = tmpName + "_" + layerGroups[i].name;
-
-                if (onFinished) {
-                    onFinished(duppedDoc, currentDoc);
-                }
-            }
-        }
+        if (singleExportType == 1)
+            exportGroupRecursively(onFinished, duppedDoc, currentDoc, tmpName, duppedDoc);
+        else
+            exportLayerRecursively(onFinished, duppedDoc, currentDoc, tmpName, duppedDoc);
 
         sheetName = tmpName;
         duppedDoc.close(SaveOptions.DONOTSAVECHANGES);
@@ -240,6 +224,67 @@ function createSingleImage(onFinished) {
     } catch (ex) {
         alert("An error occured, please submit a bug report. Error: " + ex);
     }
+}
+
+function exportLayerRecursively(onFinished, dupObj, oriObj, fileName, dupDocRef) {
+    setInvisibleAllArtLayers(dupObj);
+
+    for (var k = 0; k < dupObj.artLayers.length; k++) {
+        // if (visibleOnly) {
+        //     if (!oriObj.artLayers[k].visible) {
+        //         continue;
+
+        dupObj.artLayers[k].visible = true;
+
+        sheetName = fileName + "_" + dupObj.artLayers[k].name;
+
+        var duppedDocumentTmp = dupDocRef.duplicate();
+
+        // if (nonPng)
+        //     duppedDocumentTmp.flatten();
+
+        if (onFinished)
+            onFinished(duppedDocumentTmp, oriObj);
+
+        duppedDocumentTmp.close(SaveOptions.DONOTSAVECHANGES);
+
+        dupObj.artLayers[k].visible = false;
+    }
+
+    for (var i = 0; i < dupObj.layerSets.length; i++) {
+        // if (visibleOnly) {
+        //     if (!oriObj.layerSets[i].visible) {
+        //         continue;
+
+        exportLayerRecursively(onFinished, dupObj.layerSets[i], oriObj.layerSets[i], fileName, dupDocRef); // recursive
+    }
+}
+
+function exportGroupRecursively(onFinished, dupObj, oriObj, fileName, dupDocRef) {
+    setInvisibleAllLayerSets(dupObj, false);
+
+    for (var i = 0; i < dupObj.layerSets.length; i++) {
+        // if (visibleOnly) {
+        //     if (!oriObj.layerSets[k].visible) {
+        //         continue;
+
+        dupObj.layerSets[i].visible = true;
+
+        sheetName = fileName + "_" + dupObj.layerSets[i].name;
+
+        if (onFinished)
+            onFinished(dupObj, oriObj);
+
+        dupObj.layerSets[i].visible = false;
+    }
+
+    // for (var i = 0; i < dupObj.layerSets.length; i++) {
+    //     // if (visibleOnly) {
+    //     //     if (!oriObj.layerSets[i].visible) {
+    //     //         continue;
+
+    //     exportGroupRecursively(onFinished, dupObj, oriObj, fileName);
+    // }
 }
 
 // Count the number of frames in the timeline.
@@ -311,6 +356,96 @@ function onFramesChange(e) {
     w.tabGroup.spriteTab.columns.text = columns;
 }
 
+
+///////////////////////////////////////////////////////////////////////////////
+// Copyright 2007.  Adobe Systems, Incorporated.  All rights reserved.
+// Function: setInvisibleAllArtLayers
+// Usage: unlock and make invisible all art layers, recursively
+// Input: document or layerset
+// Return: all art layers are unlocked and invisible
+///////////////////////////////////////////////////////////////////////////////
+function setInvisibleAllArtLayers(obj) {
+    for (var i = 0; i < obj.artLayers.length; i++) {
+        obj.artLayers[i].allLocked = false;
+        obj.artLayers[i].visible = false;
+    }
+
+    for (var i = 0; i < obj.layerSets.length; i++) {
+        setInvisibleAllArtLayers(obj.layerSets[i]);
+    }
+}
+
+///////////////////////////////////////////////////////////////////////////////
+// Function: setInvisibleAllLayerSets
+// Usage: unlock and make invisible all layer sets (layer group)
+// Input: document or layerset and is recursive
+// Return: all art layers are unlocked and invisible
+///////////////////////////////////////////////////////////////////////////////
+function setInvisibleAllLayerSets(obj, recursively) {
+    for (var i = 0; i < obj.layerSets.length; i++) {
+        obj.layerSets[i].visible = false;
+    }
+
+    if (!recursively)
+        return;
+
+    for (var i = 0; i < obj.layerSets.length; i++) {
+        setInvisibleAllLayerSets(obj.layerSets[i]);
+    }
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Function: removeAllInvisibleArtLayers
+// Usage: remove all the invisible art layers, recursively
+// Input: document or layer set
+// Return: <none>, all layers that were invisible are now gone
+///////////////////////////////////////////////////////////////////////////////
+function removeAllInvisibleArtLayers(obj) {
+    for (var i = obj.artLayers.length - 1; 0 <= i; i--)
+        if (!obj.artLayers[i].visible)
+            obj.artLayers[i].remove();
+
+    for (var i = obj.layerSets.length - 1; 0 <= i; i--)
+        removeAllInvisibleArtLayers(obj.layerSets[i]);
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Function: removeAllEmptyLayerSets
+// Usage: find all empty layer sets and remove them, recursively
+// Input: document or layer set
+// Return: empty layer sets are now gone
+///////////////////////////////////////////////////////////////////////////////
+function removeAllEmptyLayerSets(obj) {
+    var foundEmpty = true;
+
+    for (var i = obj.layerSets.length - 1; 0 <= i; i--) {
+        if (removeAllEmptyLayerSets(obj.layerSets[i]))
+            obj.layerSets[i].remove();
+        else
+            foundEmpty = false;
+    }
+    if (obj.artLayers.length > 0)
+        foundEmpty = false;
+
+    return foundEmpty;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Function: zeroSuppress
+// Usage: return a string padded to digit(s)
+// Input: num to convert, digit count needed
+// Return: string padded to digit length
+///////////////////////////////////////////////////////////////////////////////
+function removeAllInvisible(docRef) {
+    removeAllInvisibleArtLayers(docRef);
+    removeAllEmptyLayerSets(docRef);
+}
+
+
+
 function saveAsPNG() {
     var finished = function (docu, originalDoc) {
         var exportedFile = null;
@@ -332,11 +467,6 @@ function saveAsPNG() {
         o.quality = 100;
 
         docu.exportDocument(exportedFile, ExportType.SAVEFORWEB, o);
-
-        if (tabIndex == 0) {
-            docu.close(SaveOptions.DONOTSAVECHANGES);
-            app.activeDocument = originalDoc;
-        }
     }
 
     switch (tabIndex) {
