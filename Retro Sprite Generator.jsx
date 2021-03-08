@@ -5,7 +5,10 @@
 */
 
 /*
+@@@BUILDINFO@@@ Retro Sprite Generator.jsx 2.0.0
+*/
 
+/*
 // BEGIN__HARVEST_EXCEPTION_ZSTRING
 
 <javascriptresource>
@@ -13,11 +16,10 @@
     <category>scriptexport</category>
     <menu>export</menu>
     <enableinfo>true</enableinfo>
-    <eventid>cf34b502-2013-4d07-8431-1dfd634ee0cd</eventid>
+    <eventid>c1448398-d731-4691-9c60-2f5410fc703a</eventid>
 </javascriptresource>
 
 // END__HARVEST_EXCEPTION_ZSTRING
-
 */
 
 
@@ -25,7 +27,7 @@
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Functions
+// Globals
 ///////////////////////////////////////////////////////////////////////////////
 
 var w,
@@ -50,6 +52,9 @@ var w,
     smallbit,
     transparency;
 
+var pngIndex = 0;
+var jpegIndex = 1;
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // Dispatch
@@ -62,6 +67,8 @@ function init() {
         tabIndex = 1;
     }
 
+    var exportOptions = new Object();
+    initExportOptions(exportOptions);
     currentDoc = app.activeDocument;
     originalPath = currentDoc.path;
     sheetName = originalDocName = currentDoc.name.split('.')[0];
@@ -711,3 +718,32 @@ function drawSingleImageGUI() {
 
     w.tabGroup.singleTab.ddTypeIndex.items[singleExportType].selected = true;
 }
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Function: initExportOptions
+// Usage: create our default parameters
+// Input: a new Object
+// Return: a new object with params set to default
+///////////////////////////////////////////////////////////////////////////////
+function initExportOptions(exportOptions) {
+    exportOptions.destination = new String("");
+    exportOptions.fileNamePrefix = new String("untitled_");
+    exportOptions.visibleOnly = false;
+    exportOptions.fileType = psdIndex;
+    exportOptions.icc = true;
+    exportOptions.pngTransparency = true;
+    exportOptions.pngInterlaced = false;
+    exportOptions.pngTrim = false;
+    exportOptions.png8 = false;
+
+    try {
+        exportOptions.destination = Folder(app.activeDocument.fullName.parent).fsName; // destination folder
+        var tmp = app.activeDocument.fullName.name;
+        exportOptions.fileNamePrefix = decodeURI(tmp.substring(0, tmp.indexOf("."))); // filename body part
+    } catch (e) {
+        exportOptions.destination = new String("");
+        exportOptions.fileNamePrefix = app.activeDocument.name; // filename body part
+    }
+}
+
