@@ -69,6 +69,17 @@ function init() {
 
     var exportOptions = new Object();
     initExportOptions(exportOptions);
+
+    // Get last used params via Photoshop registry
+    try {
+        var d = app.getCustomOptions("f987ff71-e289-49e3-9a5f-f35b106321e1");
+        descriptorToObject(exportOptions, d, "Retro Sprite Generator settings");
+    } catch (e) {
+
+    }
+
+    descriptorToObject(exportOptions, app.playbackParameters, "Retro Sprite Generator settings");
+
     currentDoc = app.activeDocument;
     originalPath = currentDoc.path;
     sheetName = originalDocName = currentDoc.name.split('.')[0];
@@ -77,7 +88,7 @@ function init() {
     spriteResolution = currentDoc.resolution;
 
     calculateColRowVals();
-    createWindow();
+    createWindow(exportOptions);
 }
 
 
@@ -492,12 +503,19 @@ function exit() {
     w.close();
 }
 
-function createWindow() {
+
+///////////////////////////////////////////////////////////////////////////////
+// Function: createWindow
+// Usage: pop the ui and get user settings
+// Input: exportOptions object containing our parameters
+// Return: on ok, the dialog info is set to the exportOptions object
+///////////////////////////////////////////////////////////////////////////////
+function createWindow(exportOptions) {
     w = new Window('dialog', 'Retro Sprite Generator', undefined, { closeButton: true });
 
     w.tabGroup = w.add('tabbedpanel');
     w.tabGroup.alignChildren = 'fill';
-
+    w.tabGroup.alignment = 'fill';
     w.tabGroup.onChange = function () {
         switch (w.tabGroup.selection.text) {
             case "Spritesheet Export":
@@ -510,8 +528,34 @@ function createWindow() {
     }
 
     drawSpritesheetGUI();
-
     drawSingleImageGUI();
+
+    // Destination
+    w.destinationPanel = w.add('panel', undefined, "Export Destination");
+    w.destinationPanel.alignChildren = 'fill';
+    w.destinationPanel.alignment = 'fill';
+
+    // Destination Preferences
+    w.destinationPanel.destinationGroup = w.destinationPanel.add("group");
+    w.destinationPanel.destinationGroup.alignment = ['left', 'top'];
+
+    w.destinationPanel.destinationGroup.destinationForm = w.destinationPanel.destinationGroup.add("edittext", undefined, exportOptions.destination.toString());
+    w.destinationPanel.destinationGroup.destinationForm.preferredSize.width = 400;
+    //w.destinationPanel.destinationGroup.destinationForm.alignment = 'fill';
+
+    w.destinationPanel.destinationGroup.destinationBrowse = w.destinationPanel.destinationGroup.add("button", undefined, "Browse");
+    w.destinationPanel.destinationGroup.destinationBrowse.onClick = function () {
+        var defaultFolder = w.destinationPanel.destinationGroup.destinationForm.text;
+        var testFolder = new Folder(w.destinationPanel.destinationGroup.destinationForm.text);
+        if (!testFolder.exists) {
+            defaultFolder = "~";
+        }
+        var selFolder = Folder.selectDialog("Select Destination", defaultFolder);
+        if (selFolder != null) {
+            w.destinationPanel.destinationGroup.destinationForm.text = selFolder.fsName;
+        }
+        w.defaultElement.active = true;
+    }
 
     // Options
     w.optionsPanel = w.add('panel', undefined, "Export Options");
@@ -730,7 +774,7 @@ function initExportOptions(exportOptions) {
     exportOptions.destination = new String("");
     exportOptions.fileNamePrefix = new String("untitled_");
     exportOptions.visibleOnly = false;
-    exportOptions.fileType = psdIndex;
+    exportOptions.fileType = pngIndex;
     exportOptions.icc = true;
     exportOptions.pngTransparency = true;
     exportOptions.pngInterlaced = false;
@@ -747,3 +791,64 @@ function initExportOptions(exportOptions) {
     }
 }
 
+
+///////////////////////////////////////////////////////////////////////////////
+// Function: descriptorToObject
+// Usage: update a JavaScript Object from an ActionDescriptor
+// Input: JavaScript Object (o), current object to update (output)
+//        Photoshop ActionDescriptor (d), descriptor to pull new params for object from
+//        object unique string (s)
+//        JavaScript Function (f), post process converter utility to convert
+// Return: Nothing, update is applied to passed in JavaScript Object (o)
+// NOTE: Only boolean, string, number and UnitValue are supported, use a post processor
+//       to convert (f) other types to one of these forms.
+// REUSE: This routine is used in other scripts. Please update those if you 
+//        modify. I am not using include or eval statements as I want these 
+//        scripts self contained.
+///////////////////////////////////////////////////////////////////////////////
+function descriptorToObject(o, d, s) {
+    var l = d.count;
+
+    if (l) {
+        var keyMessage = app.charIDToTypeID('Msge');
+        if (d.hasKey(keyMessage) && (s != d.getString(keyMessage)))
+            return;
+    }
+
+    for (var i = 0; i < l; i++) {
+        var k = d.getKey(i); // i + 1 ?
+        var t = d.getType(k);
+        strk = app.typeIDToStringID(k);
+
+        switch (t) {
+            case DescValueType.BOOLEANTYPE:
+                o[strk] = d.getBoolean(k);
+                break;
+            case DescValueType.STRINGTYPE:
+                o[strk] = d.getString(k);
+                break;
+            case DescValueType.DOUBLETYPE:
+                o[strk] = d.getDouble(k);
+                break;
+            case DescValueType.UNITDOUBLE:
+                var uc = new Object;
+                uc[charIDToTypeID("#Rlt")] = "px"; // unitDistance
+                uc[charIDToTypeID("#Prc")] = "%"; // unitPercent
+                uc[charIDToTypeID("#Pxl")] = "px"; // unitPixels
+                var ut = d.getUnitDoubleType(k);
+                var uv = d.getUnitDoubleValue(k);
+                o[strk] = new UnitValue(uv, uc[ut]);
+                break;
+            case DescValueType.INTEGERTYPE:
+            case DescValueType.ALIASTYPE:
+            case DescValueType.CLASSTYPE:
+            case DescValueType.ENUMERATEDTYPE:
+            case DescValueType.LISTTYPE:
+            case DescValueType.OBJECTTYPE:
+            case DescValueType.RAWTYPE:
+            case DescValueType.REFERENCETYPE:
+            default:
+                throw (new Error("Unsupported type in descriptorToObject " + t));
+        }
+    }
+}
