@@ -29,7 +29,6 @@
 ///////////////////////////////////////////////////////////////////////////////
 // Globals
 ///////////////////////////////////////////////////////////////////////////////
-
 var w,
     tabIndex = 0,
     frames = getFrameCount(),
@@ -56,7 +55,6 @@ var cancelButtonID = 2;
 ///////////////////////////////////////////////////////////////////////////////
 // Dispatch
 ///////////////////////////////////////////////////////////////////////////////
-
 init();
 
 function init() {
@@ -98,6 +96,7 @@ function init() {
             break;
     }
 
+    // Set last used params to Photoshop registry
     var d = objectToDescriptor(exportOptions, "Retro Sprite Generator settings");
     app.putCustomOptions("f987ff71-e289-49e3-9a5f-f35b106321e1", d);
 
@@ -263,6 +262,12 @@ function createSpriteSheet(exportOptions) {
 }
 
 
+///////////////////////////////////////////////////////////////////////////////
+// Function: exportLayerRecursively
+// Usage: export all layer to a file, recursively
+// Input: document or layerset
+// Return: file(s)
+///////////////////////////////////////////////////////////////////////////////
 function exportLayerRecursively(exportOptions, dupObj, oriObj, dupDocRef) {
     setInvisibleAllArtLayers(dupObj);
 
@@ -300,6 +305,13 @@ function exportLayerRecursively(exportOptions, dupObj, oriObj, dupDocRef) {
     }
 }
 
+
+///////////////////////////////////////////////////////////////////////////////
+// Function: exportGroupRecursively
+// Usage: export all group of layer to a file
+// Input: document or layerset
+// Return: file(s)
+///////////////////////////////////////////////////////////////////////////////
 function exportGroupRecursively(exportOptions, dupObj, oriObj, dupDocRef) {
     setInvisibleAllLayerSets(dupObj, false);
 
@@ -337,7 +349,13 @@ function exportGroupRecursively(exportOptions, dupObj, oriObj, dupDocRef) {
     // }
 }
 
-// Count the number of frames in the timeline.
+
+///////////////////////////////////////////////////////////////////////////////
+// Function: getFrameCount
+// Usage: Count the number of frames in the timeline
+// Input: none
+// Return: integer
+///////////////////////////////////////////////////////////////////////////////
 function getFrameCount() {
     for (var f = 1; f < 999; f++)
         if (selectFrame(f) == false)
@@ -346,6 +364,13 @@ function getFrameCount() {
     return 0;
 }
 
+
+///////////////////////////////////////////////////////////////////////////////
+// Function: selectFrame
+// Usage: Select animation frame
+// Input: frame number
+// Return: boolean and frame selected
+///////////////////////////////////////////////////////////////////////////////
 function selectFrame(number) {
     try {
         var desc = new ActionDescriptor();
@@ -366,6 +391,13 @@ function selectFrame(number) {
     return false;
 }
 
+
+///////////////////////////////////////////////////////////////////////////////
+// Function: getSelectionShape
+// Usage: Get selection
+// Input: width, column, height, row
+// Return: Shape
+///////////////////////////////////////////////////////////////////////////////
 function getSelectionShape(width, column, height, row) {
     var shape = [
         [column * width, row * height], // top left
@@ -377,6 +409,13 @@ function getSelectionShape(width, column, height, row) {
     return shape;
 }
 
+
+///////////////////////////////////////////////////////////////////////////////
+// Function: pasteInPlace
+// Usage: Paste selected layer into document
+// Input: none
+// Return: Layer is pasted in place
+///////////////////////////////////////////////////////////////////////////////
 function pasteInPlace() {
     var idpast = charIDToTypeID("past");
     var desc4 = new ActionDescriptor();
@@ -389,14 +428,25 @@ function pasteInPlace() {
     executeAction(idpast, desc4, DialogModes.NO);
 }
 
-/***
-/* Window setup and prep calculations
-/**/
+
+///////////////////////////////////////////////////////////////////////////////
+// Function: calculateColRowVals
+// Usage: Calculate sprite-sheet rows and columns
+// Input: none
+// Return: Total rows and columns
+///////////////////////////////////////////////////////////////////////////////
 function calculateColRowVals() {
     rows = Math.floor(Math.sqrt(frames));
     columns = Math.ceil(frames / rows);
 }
 
+
+///////////////////////////////////////////////////////////////////////////////
+// Function: onFramesChange
+// Usage: Recalculate row and column when event is triggered
+// Input: event
+// Return: New rows and columns
+///////////////////////////////////////////////////////////////////////////////
 function onFramesChange(e) {
     frames = parseInt(w.tabGroup.spriteTab.endFrame.text) - parseInt(w.tabGroup.spriteTab.startFrame.text) + 1;
 
@@ -408,7 +458,6 @@ function onFramesChange(e) {
 
 
 ///////////////////////////////////////////////////////////////////////////////
-// Copyright 2007.  Adobe Systems, Incorporated.  All rights reserved.
 // Function: setInvisibleAllArtLayers
 // Usage: unlock and make invisible all art layers, recursively
 // Input: document or layerset
@@ -492,11 +541,6 @@ function removeAllEmptyLayerSets(obj) {
 function removeAllInvisible(docRef) {
     removeAllInvisibleArtLayers(docRef);
     removeAllEmptyLayerSets(docRef);
-}
-
-
-function exit() {
-    w.close();
 }
 
 
@@ -642,6 +686,13 @@ function createWindow(exportOptions) {
     return result;
 }
 
+
+///////////////////////////////////////////////////////////////////////////////
+// Function: drawSpritesheetGUI
+// Usage: Draw sprite-sheet GUI
+// Input: exportOptions object containing our parameters
+// Return: none
+///////////////////////////////////////////////////////////////////////////////
 function drawSpritesheetGUI(exportOptions) {
     w.tabGroup.spriteTab = w.tabGroup.add('tab', undefined, 'Spritesheet Export');
 
@@ -781,8 +832,15 @@ function drawSpritesheetGUI(exportOptions) {
     w.tabGroup.spriteTab.optionsPanel.optionsGroup.smallbit.value = exportOptions.png8;
 }
 
+
+///////////////////////////////////////////////////////////////////////////////
+// Function: drawSingleImageGUI
+// Usage: Draw files export GUI
+// Input: exportOptions object containing our parameters
+// Return: none
+///////////////////////////////////////////////////////////////////////////////
 function drawSingleImageGUI(exportOptions) {
-    w.tabGroup.singleTab = w.tabGroup.add('tab', undefined, 'Single Export');
+    w.tabGroup.singleTab = w.tabGroup.add('tab', undefined, 'Files Export');
 
     // Export Mode
     w.tabGroup.singleTab.exportModePanel = w.tabGroup.singleTab.add('panel', undefined, "Export Mode");
@@ -912,7 +970,6 @@ function initExportOptions(exportOptions) {
         exportOptions.fileNamePrefix = app.activeDocument.name; // filename body part
     }
 }
-
 
 
 ///////////////////////////////////////////////////////////////////////////////
