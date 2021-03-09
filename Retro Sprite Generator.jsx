@@ -644,7 +644,18 @@ function createWindow(exportOptions) {
         return result;
 
     exportOptions.destination = w.destinationPanel.destinationGroup.destinationForm.text;
-    exportOptions.fileNamePrefix = w.namePanel.nameText.text;
+    exportOptions.fileNamePrefix = w.namePanel.nameGroup.nameText.text;
+    exportOptions.visibleOnly = w.tabGroup.singleTab.optionsPanel.pngOptionGroup.visibleOnly.value;
+    exportOptions.fileType = w.tabGroup.singleTab.exportTypePanel.exportTypeGroup.ddFileType.selection.index;
+    if (exportOptions.fileType == jpegIndex)
+        exportOptions.icc = w.tabGroup.singleTab.optionsPanel.jpegOptionGroup.icc.value;
+    else
+        exportOptions.icc = w.tabGroup.singleTab.optionsPanel.pngOptionGroup.icc.value;
+    exportOptions.pngTransparency = w.tabGroup.singleTab.optionsPanel.pngOptionGroup.pngTransparency.value;
+    exportOptions.pngInterlaced = w.tabGroup.singleTab.optionsPanel.pngOptionGroup.pngInterlaced.value;
+    exportOptions.pngTrim = w.tabGroup.singleTab.optionsPanel.pngOptionGroup.pngTrim.value;
+    exportOptions.png8 = w.tabGroup.singleTab.optionsPanel.pngOptionGroup.png8.value;
+    exportOptions.jpegQuality = w.tabGroup.singleTab.optionsPanel.jpegOptionGroup.jpegQualityGroup.jpegQualityText.text;
 
     return result;
 }
