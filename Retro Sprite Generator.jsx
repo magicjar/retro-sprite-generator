@@ -263,7 +263,7 @@ function createSpriteSheet(onFinished) {
 }
 
 
-function exportLayerRecursively(onFinished, dupObj, oriObj, fileName, dupDocRef) {
+function exportLayerRecursively(exportOptions, dupObj, oriObj, dupDocRef) {
     setInvisibleAllArtLayers(dupObj);
 
     for (var k = 0; k < dupObj.artLayers.length; k++) {
@@ -273,27 +273,27 @@ function exportLayerRecursively(onFinished, dupObj, oriObj, fileName, dupDocRef)
 
         dupObj.artLayers[k].visible = true;
 
-        sheetName = fileName + "_" + dupObj.artLayers[k].name;
+        var tmpName = exportOptions.fileNamePrefix + "_" + dupObj.artLayers[k].name;
 
         var duppedDocumentTmp = dupDocRef.duplicate();
 
         if (exportOptions.fileType != pngIndex)
             duppedDocumentTmp.flatten();
 
-        if (onFinished)
-            onFinished(duppedDocumentTmp, oriObj);
+        saveFile(duppedDocumentTmp, tmpName, exportOptions);
 
         duppedDocumentTmp.close(SaveOptions.DONOTSAVECHANGES);
 
         dupObj.artLayers[k].visible = false;
     }
 
+    // Recursive
     for (var i = 0; i < dupObj.layerSets.length; i++) {
         // if (visibleOnly) {
         //     if (!oriObj.layerSets[i].visible) {
         //         continue;
 
-        exportLayerRecursively(onFinished, dupObj.layerSets[i], oriObj.layerSets[i], fileName, dupDocRef); // recursive
+        exportLayerRecursively(exportOptions, dupObj.layerSets[i], oriObj.layerSets[i], dupDocRef); // recursive
     }
 }
 
@@ -309,9 +309,6 @@ function exportGroupRecursively(exportOptions, dupObj, oriObj, dupDocRef) {
 
         var tmpName = exportOptions.fileNamePrefix + "_" + dupObj.layerSets[i].name;
 
-        // if (onFinished)
-        //     onFinished(dupObj, oriObj);
-
         var duppedDocumentTmp = dupDocRef.duplicate();
 
         if (exportOptions.fileType != pngIndex)
@@ -324,12 +321,13 @@ function exportGroupRecursively(exportOptions, dupObj, oriObj, dupDocRef) {
         dupObj.layerSets[i].visible = false;
     }
 
+    // Recursive
     // for (var i = 0; i < dupObj.layerSets.length; i++) {
     //     // if (visibleOnly) {
     //     //     if (!oriObj.layerSets[i].visible) {
     //     //         continue;
 
-    //     exportGroupRecursively(onFinished, dupObj, oriObj, fileName);
+    //     exportGroupRecursively(exportOptions, dupObj, oriObj, fileName);
     // }
 }
 
