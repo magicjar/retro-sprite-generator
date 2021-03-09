@@ -105,6 +105,12 @@ function init() {
             createSpriteSheet(finished);
             break;
     }
+
+    var d = objectToDescriptor(exportOptions, "Retro Sprite Generator settings");
+    app.putCustomOptions("f987ff71-e289-49e3-9a5f-f35b106321e1", d);
+
+    var dd = objectToDescriptor(exportOptions, "Retro Sprite Generator settings");
+    app.playbackParameters = dd;
 }
 
 
