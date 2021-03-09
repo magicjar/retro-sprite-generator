@@ -496,6 +496,9 @@ function saveAsPNG() {
             break;
     }
 
+    // var d = objectToDescriptor(exportOptions, "Retro Sprite Generator settings");
+    // app.putCustomOptions("f987ff71-e289-49e3-9a5f-f35b106321e1", d);
+
     exit();
 }
 
@@ -789,6 +792,55 @@ function initExportOptions(exportOptions) {
         exportOptions.destination = new String("");
         exportOptions.fileNamePrefix = app.activeDocument.name; // filename body part
     }
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Function: objectToDescriptor
+// Usage: create an ActionDescriptor from a JavaScript Object
+// Input: JavaScript Object (o)
+//        object unique string (s)
+// Return: ActionDescriptor
+// NOTE: Only boolean, string, number and UnitValue are supported.
+// REUSE: This routine is used in other scripts. Please update those if you 
+//        modify. I am not using include or eval statements as I want these 
+//        scripts self contained.
+///////////////////////////////////////////////////////////////////////////////
+function objectToDescriptor(o, s) {
+    var d = new ActionDescriptor;
+    var l = o.reflect.properties.length;
+    d.putString(app.charIDToTypeID('Msge'), s);
+    for (var i = 0; i < l; i++) {
+        var k = o.reflect.properties[i].toString();
+        if (k == "__proto__" || k == "__count__" || k == "__class__" || k == "reflect")
+            continue;
+        var v = o[k];
+        k = app.stringIDToTypeID(k);
+        switch (typeof (v)) {
+            case "boolean":
+                d.putBoolean(k, v);
+                break;
+            case "string":
+                d.putString(k, v);
+                break;
+            case "number":
+                d.putDouble(k, v);
+                break;
+            default:
+                {
+                    if (v instanceof UnitValue) {
+                        var uc = new Object;
+                        uc["px"] = charIDToTypeID("#Rlt"); // unitDistance
+                        uc["%"] = charIDToTypeID("#Prc"); // unitPercent
+                        d.putUnitDouble(k, uc[v.type], v.value);
+                    } else {
+                        throw (new Error("Unsupported type in objectToDescriptor " + typeof (v)));
+                    }
+                }
+        }
+    }
+    return d;
 }
 
 
