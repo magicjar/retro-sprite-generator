@@ -32,8 +32,6 @@
 
 var w,
     tabIndex = 0,
-    sheetName,
-    originalPath,
     frames = getFrameCount(),
     currentDoc,
     columns = 4,
@@ -47,10 +45,7 @@ var w,
     spriteResolution,
     padding = 0,
     offset = 0,
-    singleExportType = 0,
-    sameFolder,
-    smallbit,
-    transparency;
+    singleExportType = 0;
 
 var jpegIndex = 0;
 var pngIndex = 1;
@@ -83,26 +78,25 @@ function init() {
 
     descriptorToObject(exportOptions, app.playbackParameters, "Retro Sprite Generator settings");
 
-    if (DialogModes.ALL == app.playbackDisplayDialogs) {
-        if (cancelButtonID == createWindow(exportOptions)) {
-            return 'cancel';
-        }
-    }
-
     currentDoc = app.activeDocument;
-    originalPath = currentDoc.path;
     sheetName = originalDocName = currentDoc.name.split('.')[0];
     spriteWidth = currentDoc.width;
     spriteHeight = currentDoc.height;
     spriteResolution = currentDoc.resolution;
     calculateColRowVals();
 
+    if (DialogModes.ALL == app.playbackDisplayDialogs) {
+        if (cancelButtonID == createWindow(exportOptions)) {
+            return 'cancel';
+        }
+    }
+
     switch (tabIndex) {
         case 1:
             createSingleImage(exportOptions);
             break;
         default:
-            createSpriteSheet(finished);
+            createSpriteSheet(exportOptions);
             break;
     }
 
@@ -144,7 +138,7 @@ function createSingleImage(exportOptions) {
 // Input: export options
 // Return: <none>, a file on disk
 ///////////////////////////////////////////////////////////////////////////////
-function createSpriteSheet(onFinished) {
+function createSpriteSheet(exportOptions) {
     try {
         if (frames == 0) {
             alert("No animation frames were found.\nThis script requires minimum of 1 frame animation to create a sprite sheet.");
@@ -173,7 +167,7 @@ function createSpriteSheet(onFinished) {
         var scaledHeight = spriteHeight * scaleNumber;
 
         // Create namming
-        sheetName = sheetName + "_" + parseInt(scaledWidth) + "x" + parseInt(scaledHeight);
+        var sheetName = exportOptions.fileNamePrefix + "_" + parseInt(scaledWidth) + "x" + parseInt(scaledHeight);
 
         // Duplicate original Document
         var duppedDoc = app.activeDocument.duplicate();
@@ -253,9 +247,11 @@ function createSpriteSheet(onFinished) {
             // Remove the default background layer
             app.activeDocument.artLayers.getByName(app.activeDocument.backgroundLayer.name).remove();
 
-            if (onFinished) {
-                onFinished(exportOptions, spriteSheetDoc);
-            }
+            exportOptions.pngInterlaced = w.tabGroup.spriteTab.optionsPanel.optionsGroup.interlaced.value;
+            exportOptions.pngTransparency = w.tabGroup.spriteTab.optionsPanel.optionsGroup.transparency.value;
+            exportOptions.png8 = w.tabGroup.spriteTab.optionsPanel.optionsGroup.smallbit.value;
+
+            saveFile(spriteSheetDoc, sheetName, exportOptions);
 
             app.preferences.typeUnits = savedPrefs.typeUnits;
             app.preferences.rulerUnits = savedPrefs.rulerUnits;
@@ -583,28 +579,12 @@ function createWindow(exportOptions) {
     }
 
     // Filename
-    w.namePanel = w.add('panel', undefined, "File Name");
+    w.namePanel = w.add('panel', undefined, "File Name Prefix");
 
     // Filename Preferences
     w.namePanel.nameGroup = w.namePanel.add('group');
 
     w.namePanel.nameGroup.nameText = w.namePanel.nameGroup.add("edittext", [0, 0, 475, 20], exportOptions.fileNamePrefix.toString());
-
-    // Options
-    w.optionsPanel = w.add('panel', undefined, "Export Options");
-    w.optionsPanel.alignment = ['fill', 'fill'];
-
-    // Option Preferences
-    w.optionsPanel.optionsGroup = w.optionsPanel.add('group');
-
-    w.optionsPanel.optionsGroup.interlaced = w.optionsPanel.optionsGroup.add('checkbox', undefined, 'Interlaced');
-    w.optionsPanel.optionsGroup.interlaced.value = false;
-
-    w.optionsPanel.optionsGroup.transparency = w.optionsPanel.optionsGroup.add('checkbox', undefined, 'Transparency');
-    w.optionsPanel.optionsGroup.transparency.value = true;
-
-    w.optionsPanel.optionsGroup.smallbit = w.optionsPanel.optionsGroup.add('checkbox', undefined, 'Smaller File (8-bit)');
-    w.optionsPanel.optionsGroup.smallbit.value = false;
 
     // Action Buttons
     var buttons = w.add('group');
@@ -627,10 +607,6 @@ function createWindow(exportOptions) {
         }
         w.close(exportButtonID);
     };
-
-    var sameFolderGroup = w.add('group');
-    sameFolder = sameFolderGroup.add('Checkbox', undefined, 'Save in same folder');
-    sameFolder.value = false;
 
     w.tabGroup.selection = tabIndex;
 
@@ -656,7 +632,7 @@ function createWindow(exportOptions) {
     return result;
 }
 
-function drawSpritesheetGUI() {
+function drawSpritesheetGUI(exportOptions) {
     w.tabGroup.spriteTab = w.tabGroup.add('tab', undefined, 'Spritesheet Export');
 
     // Frames
@@ -777,6 +753,22 @@ function drawSpritesheetGUI() {
 
     w.tabGroup.spriteTab.ddScaleNumber.items[selectedScale].selected = true;
     w.tabGroup.spriteTab.ddResampleMethod.items[selectedResample].selected = true;
+
+    // Options
+    w.tabGroup.spriteTab.optionsPanel = w.tabGroup.spriteTab.add('panel', undefined, "Export Options");
+    w.tabGroup.spriteTab.optionsPanel.alignment = ['fill', 'fill'];
+
+    // Option Preferences
+    w.tabGroup.spriteTab.optionsPanel.optionsGroup = w.tabGroup.spriteTab.optionsPanel.add('group');
+
+    w.tabGroup.spriteTab.optionsPanel.optionsGroup.interlaced = w.tabGroup.spriteTab.optionsPanel.optionsGroup.add('checkbox', undefined, 'Interlaced');
+    w.tabGroup.spriteTab.optionsPanel.optionsGroup.interlaced.value = exportOptions.pngInterlaced;
+
+    w.tabGroup.spriteTab.optionsPanel.optionsGroup.transparency = w.tabGroup.spriteTab.optionsPanel.optionsGroup.add('checkbox', undefined, 'Transparency');
+    w.tabGroup.spriteTab.optionsPanel.optionsGroup.transparency.value = exportOptions.pngTransparency;
+
+    w.tabGroup.spriteTab.optionsPanel.optionsGroup.smallbit = w.tabGroup.spriteTab.optionsPanel.optionsGroup.add('checkbox', undefined, 'Smaller File (8-bit)');
+    w.tabGroup.spriteTab.optionsPanel.optionsGroup.smallbit.value = exportOptions.png8;
 }
 
 function drawSingleImageGUI(exportOptions) {
