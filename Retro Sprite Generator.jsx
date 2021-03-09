@@ -89,15 +89,46 @@ function init() {
         }
     }
 
-    // currentDoc = app.activeDocument;
-    // originalPath = currentDoc.path;
-    // sheetName = originalDocName = currentDoc.name.split('.')[0];
-    // spriteWidth = currentDoc.width;
-    // spriteHeight = currentDoc.height;
-    // spriteResolution = currentDoc.resolution;
+    currentDoc = app.activeDocument;
+    originalPath = currentDoc.path;
+    sheetName = originalDocName = currentDoc.name.split('.')[0];
+    spriteWidth = currentDoc.width;
+    spriteHeight = currentDoc.height;
+    spriteResolution = currentDoc.resolution;
+    calculateColRowVals();
 
-    // calculateColRowVals();
-    // createWindow(exportOptions);
+    switch (tabIndex) {
+        case 1:
+            createSingleImage(exportOptions);
+            break;
+        default:
+            createSpriteSheet(finished);
+            break;
+    }
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Function: createSingleImage
+// Usage: single file document builder
+// Input: export options
+// Return: <none>, a file on disk
+///////////////////////////////////////////////////////////////////////////////
+function createSingleImage(exportOptions) {
+    try {
+        var duppedDoc = app.activeDocument.duplicate();
+        app.activeDocument = duppedDoc;
+
+        if (singleExportType == 1)
+            exportGroupRecursively(exportOptions, duppedDoc, currentDoc, duppedDoc);
+        else
+            exportLayerRecursively(exportOptions, duppedDoc, currentDoc, duppedDoc);
+
+        duppedDoc.close(SaveOptions.DONOTSAVECHANGES);
+        app.activeDocument = currentDoc;
+    } catch (ex) {
+        alert("An error occured, please submit a bug report. Error: " + ex);
+    }
 }
 
 
@@ -107,7 +138,6 @@ function init() {
 // Input: export options
 // Return: <none>, a file on disk
 ///////////////////////////////////////////////////////////////////////////////
-
 function createSpriteSheet(onFinished) {
     try {
         if (frames == 0) {
@@ -232,26 +262,6 @@ function createSpriteSheet(onFinished) {
     }
 }
 
-function createSingleImage(onFinished) {
-    try {
-        w.hide();
-
-        var duppedDoc = app.activeDocument.duplicate();
-        app.activeDocument = duppedDoc;
-        var tmpName = sheetName;
-
-        if (singleExportType == 1)
-            exportGroupRecursively(onFinished, duppedDoc, currentDoc, tmpName, duppedDoc);
-        else
-            exportLayerRecursively(onFinished, duppedDoc, currentDoc, tmpName, duppedDoc);
-
-        sheetName = tmpName;
-        duppedDoc.close(SaveOptions.DONOTSAVECHANGES);
-        app.activeDocument = currentDoc;
-    } catch (ex) {
-        alert("An error occured, please submit a bug report. Error: " + ex);
-    }
-}
 
 function exportLayerRecursively(onFinished, dupObj, oriObj, fileName, dupDocRef) {
     setInvisibleAllArtLayers(dupObj);
@@ -287,7 +297,7 @@ function exportLayerRecursively(onFinished, dupObj, oriObj, fileName, dupDocRef)
     }
 }
 
-function exportGroupRecursively(onFinished, dupObj, oriObj, fileName, dupDocRef) {
+function exportGroupRecursively(exportOptions, dupObj, oriObj, dupDocRef) {
     setInvisibleAllLayerSets(dupObj, false);
 
     for (var i = 0; i < dupObj.layerSets.length; i++) {
@@ -297,10 +307,19 @@ function exportGroupRecursively(onFinished, dupObj, oriObj, fileName, dupDocRef)
 
         dupObj.layerSets[i].visible = true;
 
-        sheetName = fileName + "_" + dupObj.layerSets[i].name;
+        var tmpName = exportOptions.fileNamePrefix + "_" + dupObj.layerSets[i].name;
 
-        if (onFinished)
-            onFinished(dupObj, oriObj);
+        // if (onFinished)
+        //     onFinished(dupObj, oriObj);
+
+        var duppedDocumentTmp = dupDocRef.duplicate();
+
+        if (exportOptions.fileType != pngIndex)
+            duppedDocumentTmp.flatten();
+
+        saveFile(duppedDocumentTmp, tmpName, exportOptions);
+
+        duppedDocumentTmp.close(SaveOptions.DONOTSAVECHANGES);
 
         dupObj.layerSets[i].visible = false;
     }
@@ -472,45 +491,6 @@ function removeAllInvisible(docRef) {
 }
 
 
-
-function saveAsPNG() {
-    var finished = function (docu, originalDoc) {
-        var exportedFile = null;
-
-        if (sameFolder.value == true)
-            exportedFile = new File(originalPath + "/" + sheetName + ".png");
-        else
-            exportedFile = File.saveDialog("Save as PNG", "*.png");
-
-        if (exportedFile == null)
-            return;
-
-        var o = new ExportOptionsSaveForWeb();
-        o.format = SaveDocumentType.PNG;
-        o.PNG8 = w.optionsPanel.optionsGroup.smallbit.value;
-        o.transparency = w.optionsPanel.optionsGroup.transparency.value;
-        o.interlaced = w.optionsPanel.optionsGroup.transparency.value;
-        o.includeProfile = false;
-        o.quality = 100;
-
-        docu.exportDocument(exportedFile, ExportType.SAVEFORWEB, o);
-    }
-
-    switch (tabIndex) {
-        case 1:
-            createSingleImage(finished);
-            break;
-        default:
-            createSpriteSheet(finished);
-            break;
-    }
-
-    // var d = objectToDescriptor(exportOptions, "Retro Sprite Generator settings");
-    // app.putCustomOptions("f987ff71-e289-49e3-9a5f-f35b106321e1", d);
-
-    exit();
-}
-
 function exit() {
     w.close();
 }
@@ -537,8 +517,8 @@ function saveFile(docRef, fileNameBody, exportOptions) {
             var saveFile = new File(exportOptions.destination + "/" + fileNameBody + ".png");
             pngS4WOptions.format = SaveDocumentType.PNG;
             pngS4WOptions.PNG8 = exportOptions.png8;
-            pngS4WOptions.transparency = exportOptions.transparency;
-            pngS4WOptions.interlaced = exportOptions.interlaced;
+            pngS4WOptions.transparency = exportOptions.pngTransparency;
+            pngS4WOptions.interlaced = exportOptions.pngInterlaced;
             pngS4WOptions.includeProfile = exportOptions.icc;
             pngS4WOptions.quality = 100;
             docRef.exportDocument(saveFile, ExportType.SAVEFORWEB, pngS4WOptions);
@@ -629,8 +609,20 @@ function createWindow(exportOptions) {
         w.close(cancelButtonID);
     };
 
-    buttons.saveAsPNGBtn = buttons.add('button', undefined, 'Save as PNG');
-    buttons.saveAsPNGBtn.onClick = saveAsPNG;
+    buttons.export = buttons.add('button', undefined, 'Export');
+    buttons.export.onClick = function () {
+        var destination = w.destinationPanel.destinationGroup.destinationForm.text;
+        if (destination.length == 0) {
+            alert('Please specify destination.');
+            return;
+        }
+        var testFolder = new Folder(destination);
+        if (!testFolder.exists) {
+            alert('Destination does not exist.');
+            return;
+        }
+        w.close(exportButtonID);
+    };
 
     var sameFolderGroup = w.add('group');
     sameFolder = sameFolderGroup.add('Checkbox', undefined, 'Save in same folder');
