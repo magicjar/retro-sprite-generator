@@ -79,7 +79,6 @@ function init() {
     descriptorToObject(exportOptions, app.playbackParameters, "Retro Sprite Generator settings");
 
     currentDoc = app.activeDocument;
-    sheetName = originalDocName = currentDoc.name.split('.')[0];
     spriteWidth = currentDoc.width;
     spriteHeight = currentDoc.height;
     spriteResolution = currentDoc.resolution;
@@ -584,7 +583,12 @@ function createWindow(exportOptions) {
     // Filename Preferences
     w.namePanel.nameGroup = w.namePanel.add('group');
 
-    w.namePanel.nameGroup.nameText = w.namePanel.nameGroup.add("edittext", [0, 0, 475, 20], exportOptions.fileNamePrefix.toString());
+    w.namePanel.nameGroup.nameText = w.namePanel.nameGroup.add("edittext", [0, 0, 365, 20], exportOptions.fileNamePrefix.toString());
+
+    w.namePanel.nameGroup.resetName = w.namePanel.nameGroup.add("button", [0, 0, 100, 20], "Reset Name");
+    w.namePanel.nameGroup.resetName.onClick = function () {
+        w.namePanel.nameGroup.nameText.text = exportOptions.fileNamePrefix = app.activeDocument.name.split('.')[0]
+    }
 
     // Action Buttons
     var buttons = w.add('group');
