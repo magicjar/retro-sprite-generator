@@ -280,6 +280,9 @@ function exportLayerRecursively(exportOptions, dupObj, oriObj, dupDocRef) {
 
         if (exportOptions.fileType != pngIndex)
             duppedDocumentTmp.flatten();
+        else
+            if (exportOptions.pngTrim)
+                app.activeDocument.trim(TrimType.TRANSPARENT);
 
         saveFile(duppedDocumentTmp, tmpName, exportOptions);
 
@@ -314,6 +317,9 @@ function exportGroupRecursively(exportOptions, dupObj, oriObj, dupDocRef) {
 
         if (exportOptions.fileType != pngIndex)
             duppedDocumentTmp.flatten();
+        else
+            if (exportOptions.pngTrim)
+                app.activeDocument.trim(TrimType.TRANSPARENT);
 
         saveFile(duppedDocumentTmp, tmpName, exportOptions);
 
