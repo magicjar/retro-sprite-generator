@@ -44,8 +44,7 @@ var w,
     spriteHeight, // Original height
     spriteResolution,
     padding = 0,
-    offset = 0,
-    singleExportType = 0;
+    offset = 0;
 
 var jpegIndex = 0;
 var pngIndex = 1;
@@ -118,7 +117,7 @@ function createSingleImage(exportOptions) {
         var duppedDoc = app.activeDocument.duplicate();
         app.activeDocument = duppedDoc;
 
-        if (singleExportType == 1)
+        if (exportOptions.exportType == 1)
             exportGroupRecursively(exportOptions, duppedDoc, currentDoc, duppedDoc);
         else
             exportLayerRecursively(exportOptions, duppedDoc, currentDoc, duppedDoc);
@@ -627,6 +626,7 @@ function createWindow(exportOptions) {
 
     exportOptions.destination = w.destinationPanel.destinationGroup.destinationForm.text;
     exportOptions.fileNamePrefix = w.namePanel.nameGroup.nameText.text;
+    exportOptions.exportType = w.tabGroup.singleTab.ddTypeIndex.selection.index;
     exportOptions.visibleOnly = w.tabGroup.singleTab.optionsPanel.pngOptionGroup.visibleOnly.value;
     exportOptions.fileType = w.tabGroup.singleTab.exportTypePanel.exportTypeGroup.ddFileType.selection.index;
     if (exportOptions.fileType == jpegIndex)
@@ -790,12 +790,9 @@ function drawSingleImageGUI(exportOptions) {
     // Export Mode Preferences
     w.tabGroup.singleTab.exportModePanel.exportModeGroup = w.tabGroup.singleTab.exportModePanel.add('group');
 
-    w.tabGroup.singleTab.exportModePanel.exportModeGroup.add('StaticText', [0, 0, 70, 20], 'Export:');
+    w.tabGroup.singleTab.exportModePanel.exportModeGroup.add('StaticText', [0, 0, 70, 20], 'Type:');
     w.tabGroup.singleTab.ddTypeIndex = w.tabGroup.singleTab.exportModePanel.exportModeGroup.add("dropdownlist", [0, 0, 330, 20], ['Layers', 'Groups']);
-    w.tabGroup.singleTab.ddTypeIndex.onChange = function () {
-        singleExportType = this.selection.index;
-    }
-    w.tabGroup.singleTab.ddTypeIndex.items[singleExportType].selected = true;
+    w.tabGroup.singleTab.ddTypeIndex.items[exportOptions.exportType].selected = true;
 
     // Export Type
     w.tabGroup.singleTab.exportTypePanel = w.tabGroup.singleTab.add('panel', undefined, "File Setting");
@@ -896,6 +893,7 @@ function hideAllFileTypePanel(window) {
 function initExportOptions(exportOptions) {
     exportOptions.destination = new String("");
     exportOptions.fileNamePrefix = new String("untitled_");
+    exportOptions.exportType = 0;
     exportOptions.visibleOnly = true;
     exportOptions.fileType = pngIndex;
     exportOptions.icc = true;
