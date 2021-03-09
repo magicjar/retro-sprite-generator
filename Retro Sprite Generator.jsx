@@ -267,9 +267,9 @@ function exportLayerRecursively(exportOptions, dupObj, oriObj, dupDocRef) {
     setInvisibleAllArtLayers(dupObj);
 
     for (var k = 0; k < dupObj.artLayers.length; k++) {
-        // if (visibleOnly) {
-        //     if (!oriObj.artLayers[k].visible) {
-        //         continue;
+        if (exportOptions.visibleOnly)
+            if (!oriObj.artLayers[k].visible)
+                continue;
 
         dupObj.artLayers[k].visible = true;
 
@@ -289,9 +289,9 @@ function exportLayerRecursively(exportOptions, dupObj, oriObj, dupDocRef) {
 
     // Recursive
     for (var i = 0; i < dupObj.layerSets.length; i++) {
-        // if (visibleOnly) {
-        //     if (!oriObj.layerSets[i].visible) {
-        //         continue;
+        if (exportOptions.visibleOnly)
+            if (!oriObj.layerSets[i].visible)
+                continue;
 
         exportLayerRecursively(exportOptions, dupObj.layerSets[i], oriObj.layerSets[i], dupDocRef); // recursive
     }
@@ -301,9 +301,9 @@ function exportGroupRecursively(exportOptions, dupObj, oriObj, dupDocRef) {
     setInvisibleAllLayerSets(dupObj, false);
 
     for (var i = 0; i < dupObj.layerSets.length; i++) {
-        // if (visibleOnly) {
-        //     if (!oriObj.layerSets[k].visible) {
-        //         continue;
+        if (exportOptions.visibleOnly)
+            if (!oriObj.layerSets[i].visible)
+                continue;
 
         dupObj.layerSets[i].visible = true;
 
