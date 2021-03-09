@@ -55,6 +55,9 @@ var w,
 var pngIndex = 0;
 var jpegIndex = 1;
 
+var exportButtonID = 1;
+var cancelButtonID = 2;
+
 
 ///////////////////////////////////////////////////////////////////////////////
 // Dispatch
@@ -80,15 +83,21 @@ function init() {
 
     descriptorToObject(exportOptions, app.playbackParameters, "Retro Sprite Generator settings");
 
-    currentDoc = app.activeDocument;
-    originalPath = currentDoc.path;
-    sheetName = originalDocName = currentDoc.name.split('.')[0];
-    spriteWidth = currentDoc.width;
-    spriteHeight = currentDoc.height;
-    spriteResolution = currentDoc.resolution;
+    if (DialogModes.ALL == app.playbackDisplayDialogs) {
+        if (cancelButtonID == createWindow(exportOptions)) {
+            return 'cancel';
+        }
+    }
 
-    calculateColRowVals();
-    createWindow(exportOptions);
+    // currentDoc = app.activeDocument;
+    // originalPath = currentDoc.path;
+    // sheetName = originalDocName = currentDoc.name.split('.')[0];
+    // spriteWidth = currentDoc.width;
+    // spriteHeight = currentDoc.height;
+    // spriteResolution = currentDoc.resolution;
+
+    // calculateColRowVals();
+    // createWindow(exportOptions);
 }
 
 
@@ -209,7 +218,7 @@ function createSpriteSheet(onFinished) {
             app.activeDocument.artLayers.getByName(app.activeDocument.backgroundLayer.name).remove();
 
             if (onFinished) {
-                onFinished(spriteSheetDoc, currentDoc);
+                onFinished(exportOptions, spriteSheetDoc);
             }
 
             app.preferences.typeUnits = savedPrefs.typeUnits;
@@ -258,8 +267,8 @@ function exportLayerRecursively(onFinished, dupObj, oriObj, fileName, dupDocRef)
 
         var duppedDocumentTmp = dupDocRef.duplicate();
 
-        // if (nonPng)
-        //     duppedDocumentTmp.flatten();
+        if (exportOptions.fileType != pngIndex)
+            duppedDocumentTmp.flatten();
 
         if (onFinished)
             onFinished(duppedDocumentTmp, oriObj);
@@ -508,6 +517,42 @@ function exit() {
 
 
 ///////////////////////////////////////////////////////////////////////////////
+// Function: saveFile
+// Usage: the worker routine, take our params and save the file accordingly
+// Input: reference to the document, the name of the output file, 
+//        export info object containing more information
+// Return: <none>, a file on disk
+///////////////////////////////////////////////////////////////////////////////
+function saveFile(docRef, fileNameBody, exportOptions) {
+    switch (exportOptions.fileType) {
+        case jpegIndex:
+            var jpgSaveOptions = new JPEGSaveOptions();
+            var saveFile = new File(exportOptions.destination + "/" + fileNameBody + ".jpg");
+            jpgSaveOptions.embedColorProfile = exportOptions.icc;
+            jpgSaveOptions.quality = exportOptions.jpegQuality;
+            docRef.saveAs(saveFile, jpgSaveOptions, true, Extension.LOWERCASE);
+            break;
+        case pngIndex:
+            var pngS4WOptions = new ExportOptionsSaveForWeb();
+            var saveFile = new File(exportOptions.destination + "/" + fileNameBody + ".png");
+            pngS4WOptions.format = SaveDocumentType.PNG;
+            pngS4WOptions.PNG8 = exportOptions.png8;
+            pngS4WOptions.transparency = exportOptions.transparency;
+            pngS4WOptions.interlaced = exportOptions.interlaced;
+            pngS4WOptions.includeProfile = exportOptions.icc;
+            pngS4WOptions.quality = 100;
+            docRef.exportDocument(saveFile, ExportType.SAVEFORWEB, pngS4WOptions);
+            break;
+        default:
+            if (DialogModes.NO != app.playbackDisplayDialogs) {
+                alert("Unexpected error");
+            }
+            break;
+    }
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
 // Function: createWindow
 // Usage: pop the ui and get user settings
 // Input: exportOptions object containing our parameters
@@ -530,8 +575,8 @@ function createWindow(exportOptions) {
         }
     }
 
-    drawSpritesheetGUI();
-    drawSingleImageGUI();
+    drawSpritesheetGUI(exportOptions);
+    drawSingleImageGUI(exportOptions);
 
     // Destination
     w.destinationPanel = w.add('panel', undefined, "Export Destination");
@@ -560,6 +605,20 @@ function createWindow(exportOptions) {
         w.defaultElement.active = true;
     }
 
+    // Filename
+    w.namePanel = w.add('panel', undefined, "File Name");
+    w.namePanel.alignChildren = 'fill';
+    w.namePanel.alignment = 'fill';
+
+    // Filename Preferences
+    w.namePanel.nameGroup = w.namePanel.add('group');
+    w.namePanel.nameGroup.alignment = ['left', 'top'];
+    w.namePanel.nameGroup.alignChildren = 'fill';
+
+    w.namePanel.nameGroup.nameText = w.namePanel.nameGroup.add("edittext", undefined, exportOptions.fileNamePrefix.toString());
+    w.namePanel.nameGroup.nameText.alignment = 'fill';
+    w.namePanel.nameGroup.nameText.preferredSize.width = 485;
+
     // Options
     w.optionsPanel = w.add('panel', undefined, "Export Options");
     w.optionsPanel.alignment = ['fill', 'fill'];
@@ -580,7 +639,9 @@ function createWindow(exportOptions) {
     // Action Buttons
     var buttons = w.add('group');
     buttons.cancel = buttons.add('button', undefined, 'Cancel');
-    buttons.cancel.onClick = exit;
+    buttons.cancel.onClick = function () {
+        w.close(cancelButtonID);
+    };
 
     buttons.saveAsPNGBtn = buttons.add('button', undefined, 'Save as PNG');
     buttons.saveAsPNGBtn.onClick = saveAsPNG;
@@ -591,7 +652,15 @@ function createWindow(exportOptions) {
 
     w.tabGroup.selection = tabIndex;
 
-    w.show();
+    var result = w.show();
+
+    if (cancelButtonID == result)
+        return result;
+
+    exportOptions.destination = w.destinationPanel.destinationGroup.destinationForm.text;
+    exportOptions.fileNamePrefix = w.namePanel.nameText.text;
+
+    return result;
 }
 
 function drawSpritesheetGUI() {
@@ -607,12 +676,12 @@ function drawSpritesheetGUI() {
     w.tabGroup.spriteTab.frameGroup.alignChildren = ['fill', 'fill'];
     w.tabGroup.spriteTab.frameGroup.alignment = ['fill', 'top'];
 
-    w.tabGroup.spriteTab.frameGroup.add('StaticText', [0, 0, 60, 25], 'Start frame:');
+    w.tabGroup.spriteTab.frameGroup.add('StaticText', undefined, 'Start frame:');
     w.tabGroup.spriteTab.startFrame = w.tabGroup.spriteTab.frameGroup.add('EditText', undefined, 1);
     w.tabGroup.spriteTab.startFrame.characters = 5;
     w.tabGroup.spriteTab.startFrame.onChange = onFramesChange;
 
-    w.tabGroup.spriteTab.frameGroup.add('StaticText', [0, 0, 60, 25], 'End frame:');
+    w.tabGroup.spriteTab.frameGroup.add('StaticText', undefined, 'End frame:');
     w.tabGroup.spriteTab.endFrame = w.tabGroup.spriteTab.frameGroup.add('EditText', undefined, frames);
     w.tabGroup.spriteTab.endFrame.characters = 5;
     w.tabGroup.spriteTab.endFrame.onChange = onFramesChange;
@@ -627,12 +696,12 @@ function drawSpritesheetGUI() {
     w.tabGroup.spriteTab.dimensionsGroup.alignChildren = ['fill', 'fill'];
     w.tabGroup.spriteTab.dimensionsGroup.alignment = ['fill', 'top'];
 
-    w.tabGroup.spriteTab.dimensionsGroup.add('StaticText', [0, 0, 60, 25], 'Columns:');
+    w.tabGroup.spriteTab.dimensionsGroup.add('StaticText', undefined, 'Columns:');
     w.tabGroup.spriteTab.columns = w.tabGroup.spriteTab.dimensionsGroup.add('EditText', undefined, columns);
     w.tabGroup.spriteTab.columns.characters = 5;
     w.tabGroup.spriteTab.columns.helpTip = 'Number of columns';
 
-    w.tabGroup.spriteTab.dimensionsGroup.add('StaticText', [0, 0, 60, 25], 'Rows:');
+    w.tabGroup.spriteTab.dimensionsGroup.add('StaticText', undefined, 'Rows:');
     w.tabGroup.spriteTab.rows = w.tabGroup.spriteTab.dimensionsGroup.add('EditText', undefined, rows);
     w.tabGroup.spriteTab.rows.characters = 5;
     w.tabGroup.spriteTab.rows.helpTip = 'Number of rows';
@@ -647,7 +716,7 @@ function drawSpritesheetGUI() {
     w.tabGroup.spriteTab.imageScaleGroup.alignChildren = ['fill', 'fill'];
     w.tabGroup.spriteTab.imageScaleGroup.alignment = ['fill', 'top'];
 
-    w.tabGroup.spriteTab.imageScaleGroup.add('StaticText', [0, 0, 60, 25], 'Scale:');
+    w.tabGroup.spriteTab.imageScaleGroup.add('StaticText', undefined, 'Scale:');
     w.tabGroup.spriteTab.ddScaleNumber = w.tabGroup.spriteTab.imageScaleGroup.add("dropdownlist", undefined, ['Default', '@2x', '@3x']);
 
     w.tabGroup.spriteTab.ddScaleNumber.onChange = function () {
@@ -714,12 +783,12 @@ function drawSpritesheetGUI() {
     w.tabGroup.spriteTab.spacingGroup.alignChildren = ['fill', 'fill'];
     w.tabGroup.spriteTab.spacingGroup.alignment = ['fill', 'top'];
 
-    w.tabGroup.spriteTab.spacingGroup.add('StaticText', [0, 0, 60, 25], 'Offset:');
+    w.tabGroup.spriteTab.spacingGroup.add('StaticText', undefined, 'Offset:');
     w.tabGroup.spriteTab.offset = w.tabGroup.spriteTab.spacingGroup.add('EditText', undefined, offset);
     w.tabGroup.spriteTab.offset.characters = 5;
     w.tabGroup.spriteTab.offset.helpTip = 'Outer space around sprite sheet';
 
-    w.tabGroup.spriteTab.spacingGroup.add('StaticText', [0, 0, 60, 25], 'Padding:');
+    w.tabGroup.spriteTab.spacingGroup.add('StaticText', undefined, 'Padding:');
     w.tabGroup.spriteTab.padding = w.tabGroup.spriteTab.spacingGroup.add('EditText', undefined, padding);
     w.tabGroup.spriteTab.padding.characters = 5;
     w.tabGroup.spriteTab.padding.helpTip = 'Space between each images';
@@ -743,27 +812,94 @@ function drawSpritesheetGUI() {
     w.tabGroup.spriteTab.ddResampleMethod.items[selectedResample].selected = true;
 }
 
-function drawSingleImageGUI() {
+function drawSingleImageGUI(exportOptions) {
     w.tabGroup.singleTab = w.tabGroup.add('tab', undefined, 'Single Export');
 
-    // Image Scale
-    w.tabGroup.singleTab.exportTypePanel = w.tabGroup.singleTab.add('panel', undefined, "Export Mode");
-    w.tabGroup.singleTab.exportTypePanel.alignChildren = 'fill';
-    w.tabGroup.singleTab.exportTypePanel.alignment = 'fill';
+    // Export Mode
+    w.tabGroup.singleTab.exportModePanel = w.tabGroup.singleTab.add('panel', undefined, "Export Mode");
+    w.tabGroup.singleTab.exportModePanel.alignChildren = 'fill';
+    w.tabGroup.singleTab.exportModePanel.alignment = 'fill';
 
-    // Image Scale Preferences
-    w.tabGroup.singleTab.exportTypeGroup = w.tabGroup.singleTab.exportTypePanel.add('group');
-    w.tabGroup.singleTab.exportTypeGroup.alignChildren = ['fill', 'fill'];
-    w.tabGroup.singleTab.exportTypeGroup.alignment = ['fill', 'top'];
+    // Export Mode Preferences
+    w.tabGroup.singleTab.exportModeGroup = w.tabGroup.singleTab.exportModePanel.add('group');
+    w.tabGroup.singleTab.exportModeGroup.alignChildren = ['fill', 'fill'];
+    w.tabGroup.singleTab.exportModeGroup.alignment = ['fill', 'top'];
 
-    w.tabGroup.singleTab.exportTypeGroup.add('StaticText', [0, 0, 60, 25], 'Export:');
-    w.tabGroup.singleTab.ddTypeIndex = w.tabGroup.singleTab.exportTypeGroup.add("dropdownlist", undefined, ['Layers', 'Groups']);
-
+    w.tabGroup.singleTab.exportModeGroup.add('StaticText', undefined, 'Export:');
+    w.tabGroup.singleTab.ddTypeIndex = w.tabGroup.singleTab.exportModeGroup.add("dropdownlist", undefined, ['Layers', 'Groups']);
     w.tabGroup.singleTab.ddTypeIndex.onChange = function () {
         singleExportType = this.selection.index;
     }
-
     w.tabGroup.singleTab.ddTypeIndex.items[singleExportType].selected = true;
+
+    // Export Type
+    w.tabGroup.singleTab.exportTypePanel = w.tabGroup.singleTab.add('panel', undefined, "Export Type");
+    w.tabGroup.singleTab.exportTypePanel.alignChildren = 'fill';
+    w.tabGroup.singleTab.exportTypePanel.alignment = 'fill';
+
+    // Export Type Preferences
+    w.tabGroup.singleTab.exportTypePanel.ddFileType = w.tabGroup.singleTab.exportTypePanel.add("dropdownlist", undefined, ['JPEG', 'PNG']);
+    w.tabGroup.singleTab.exportTypePanel.ddFileType.alignment = 'fill';
+    w.tabGroup.singleTab.exportTypePanel.ddFileType.onChange = function () {
+        hideAllFileTypePanel(w);
+        switch (this.selection.index) {
+            case jpegIndex:
+                w.tabGroup.singleTab.optionsPanel.text = 'JPEG Options';
+                w.tabGroup.singleTab.optionsPanel.jpegOptionGroup.show();
+                break;
+            case pngIndex:
+                w.tabGroup.singleTab.optionsPanel.text = 'PNG Options';
+                w.tabGroup.singleTab.optionsPanel.pngOptionGroup.show();
+                break;
+        }
+    }
+
+    // Options Panel
+    w.tabGroup.singleTab.optionsPanel = w.tabGroup.singleTab.add('panel', undefined, "Options");
+    w.tabGroup.singleTab.optionsPanel.orientation = 'stack';
+    w.tabGroup.singleTab.optionsPanel.alignment = 'fill';
+
+    // PNG Options
+    w.tabGroup.singleTab.optionsPanel.pngOptionGroup = w.tabGroup.singleTab.optionsPanel.add('group');
+    w.tabGroup.singleTab.optionsPanel.pngOptionGroup.orientation = 'column';
+
+    w.tabGroup.singleTab.optionsPanel.pngOptionGroup.visibleOnly = w.tabGroup.singleTab.optionsPanel.pngOptionGroup.add("checkbox", undefined, "Visible Layer/Group Only");
+    w.tabGroup.singleTab.optionsPanel.pngOptionGroup.visibleOnly.value = exportOptions.visibleOnly;
+
+    w.tabGroup.singleTab.optionsPanel.pngOptionGroup.visible = (exportOptions.fileType == pngIndex);
+
+    // JPEG Options
+    w.tabGroup.singleTab.optionsPanel.jpegOptionGroup = w.tabGroup.singleTab.optionsPanel.add('group');
+    w.tabGroup.singleTab.optionsPanel.jpegOptionGroup.orientation = 'column';
+
+    w.tabGroup.singleTab.optionsPanel.jpegOptionGroup.visibleOnly = w.tabGroup.singleTab.optionsPanel.jpegOptionGroup.add("checkbox", undefined, "Visible Layer/Group Only");
+    w.tabGroup.singleTab.optionsPanel.jpegOptionGroup.visibleOnly.value = exportOptions.visibleOnly;
+
+    w.tabGroup.singleTab.optionsPanel.jpegOptionGroup.jpegQualityGroup = w.tabGroup.singleTab.optionsPanel.jpegOptionGroup.add('group');
+    w.tabGroup.singleTab.optionsPanel.jpegOptionGroup.jpegQualityGroup.jpegQualityLabel = w.tabGroup.singleTab.optionsPanel.jpegOptionGroup.jpegQualityGroup.add("statictext", undefined, 'Quality:');
+    w.tabGroup.singleTab.optionsPanel.jpegOptionGroup.jpegQualityGroup.jpegQuality = w.tabGroup.singleTab.optionsPanel.jpegOptionGroup.jpegQualityGroup.add('slider', undefined, exportOptions.jpegQuality, 0, 12);
+    w.tabGroup.singleTab.optionsPanel.jpegOptionGroup.jpegQualityGroup.jpegQuality.preferredSize = [330, -1];
+    w.tabGroup.singleTab.optionsPanel.jpegOptionGroup.jpegQualityGroup.jpegQualityText = w.tabGroup.singleTab.optionsPanel.jpegOptionGroup.jpegQualityGroup.add("statictext", undefined, exportOptions.jpegQuality.toString());
+    w.tabGroup.singleTab.optionsPanel.jpegOptionGroup.jpegQualityGroup.jpegQuality.onChanging = function () {
+        this.value = Math.round(this.value);
+        w.tabGroup.singleTab.optionsPanel.jpegOptionGroup.jpegQualityGroup.jpegQualityText.text = this.value;
+    }
+
+    w.tabGroup.singleTab.optionsPanel.jpegOptionGroup.visible = (exportOptions.fileType == jpegIndex);
+
+    w.tabGroup.singleTab.exportTypePanel.ddFileType.items[exportOptions.fileType].selected = true;
+}
+
+
+///////////////////////////////////////////////////////////////////////////////
+// Function: hideAllFileTypePanel
+// Usage: hide all the panels in the common actions
+// Input: window is the dialog for this script
+// Return: <none>, all panels are now hidden
+///////////////////////////////////////////////////////////////////////////////
+function hideAllFileTypePanel(window) {
+    window.tabGroup.singleTab.optionsPanel.jpegOptionGroup.hide();
+    window.tabGroup.singleTab.optionsPanel.pngOptionGroup.hide();
 }
 
 
@@ -783,6 +919,7 @@ function initExportOptions(exportOptions) {
     exportOptions.pngInterlaced = false;
     exportOptions.pngTrim = false;
     exportOptions.png8 = false;
+    exportOptions.jpegQuality = 8;
 
     try {
         exportOptions.destination = Folder(app.activeDocument.fullName.parent).fsName; // destination folder
