@@ -780,7 +780,6 @@ function drawSingleImageGUI(exportOptions) {
 
     // Export Mode Preferences
     w.tabGroup.singleTab.exportModePanel.exportModeGroup = w.tabGroup.singleTab.exportModePanel.add('group');
-    w.tabGroup.singleTab.exportModePanel.exportModeGroup.alignment = ['fill', 'top'];
 
     w.tabGroup.singleTab.exportModePanel.exportModeGroup.add('StaticText', [0, 0, 70, 20], 'Export:');
     w.tabGroup.singleTab.ddTypeIndex = w.tabGroup.singleTab.exportModePanel.exportModeGroup.add("dropdownlist", [0, 0, 330, 20], ['Layers', 'Groups']);
@@ -794,7 +793,6 @@ function drawSingleImageGUI(exportOptions) {
 
     // Export Type Preferences
     w.tabGroup.singleTab.exportTypePanel.exportTypeGroup = w.tabGroup.singleTab.exportTypePanel.add('group');
-    w.tabGroup.singleTab.exportTypePanel.exportTypeGroup.alignment = ['fill', 'top'];
 
     w.tabGroup.singleTab.exportTypePanel.exportTypeGroup.add('StaticText', [0, 0, 70, 20], 'Format:');
     w.tabGroup.singleTab.exportTypePanel.exportTypeGroup.ddFileType = w.tabGroup.singleTab.exportTypePanel.exportTypeGroup.add("dropdownlist", [0, 0, 330, 20], ['JPEG', 'PNG']);
@@ -815,28 +813,29 @@ function drawSingleImageGUI(exportOptions) {
     // Options Panel
     w.tabGroup.singleTab.optionsPanel = w.tabGroup.singleTab.add('panel', undefined, "Options");
     w.tabGroup.singleTab.optionsPanel.orientation = 'stack';
+    w.tabGroup.singleTab.optionsPanel.alignment = 'fill';
+    w.tabGroup.singleTab.optionsPanel.alignChildren = 'fill';
 
     // PNG Options
     w.tabGroup.singleTab.optionsPanel.pngOptionGroup = w.tabGroup.singleTab.optionsPanel.add('group');
     w.tabGroup.singleTab.optionsPanel.pngOptionGroup.orientation = 'column';
-    w.tabGroup.singleTab.optionsPanel.pngOptionGroup.alignChildren = 'left';
 
-    w.tabGroup.singleTab.optionsPanel.pngOptionGroup.visibleOnly = w.tabGroup.singleTab.optionsPanel.pngOptionGroup.add("checkbox", undefined, "Visible Layer/Group Only");
+    w.tabGroup.singleTab.optionsPanel.pngOptionGroup.visibleOnly = w.tabGroup.singleTab.optionsPanel.pngOptionGroup.add("checkbox", [50, 0, 300, 20], "Visible Layer/Group Only");
     w.tabGroup.singleTab.optionsPanel.pngOptionGroup.visibleOnly.value = exportOptions.visibleOnly;
 
-    w.tabGroup.singleTab.optionsPanel.pngOptionGroup.pngTransparency = w.tabGroup.singleTab.optionsPanel.pngOptionGroup.add("checkbox", undefined, "Transparency");
+    w.tabGroup.singleTab.optionsPanel.pngOptionGroup.pngTransparency = w.tabGroup.singleTab.optionsPanel.pngOptionGroup.add("checkbox", [50, 0, 300, 20], "Transparency");
     w.tabGroup.singleTab.optionsPanel.pngOptionGroup.pngTransparency.value = exportOptions.pngTransparency;
 
-    w.tabGroup.singleTab.optionsPanel.pngOptionGroup.pngInterlaced = w.tabGroup.singleTab.optionsPanel.pngOptionGroup.add("checkbox", undefined, "Interlaced");
+    w.tabGroup.singleTab.optionsPanel.pngOptionGroup.pngInterlaced = w.tabGroup.singleTab.optionsPanel.pngOptionGroup.add("checkbox", [50, 0, 300, 20], "Interlaced");
     w.tabGroup.singleTab.optionsPanel.pngOptionGroup.pngInterlaced.value = exportOptions.pngInterlaced;
 
-    w.tabGroup.singleTab.optionsPanel.pngOptionGroup.pngTrim = w.tabGroup.singleTab.optionsPanel.pngOptionGroup.add("checkbox", undefined, "Trim");
+    w.tabGroup.singleTab.optionsPanel.pngOptionGroup.pngTrim = w.tabGroup.singleTab.optionsPanel.pngOptionGroup.add("checkbox", [50, 0, 300, 20], "Trim");
     w.tabGroup.singleTab.optionsPanel.pngOptionGroup.pngTrim.value = exportOptions.pngTrim;
 
-    w.tabGroup.singleTab.optionsPanel.pngOptionGroup.png8 = w.tabGroup.singleTab.optionsPanel.pngOptionGroup.add("checkbox", undefined, "PNG-8");
+    w.tabGroup.singleTab.optionsPanel.pngOptionGroup.png8 = w.tabGroup.singleTab.optionsPanel.pngOptionGroup.add("checkbox", [50, 0, 300, 20], "PNG-8");
     w.tabGroup.singleTab.optionsPanel.pngOptionGroup.png8.value = exportOptions.png8;
 
-    w.tabGroup.singleTab.optionsPanel.pngOptionGroup.icc = w.tabGroup.singleTab.optionsPanel.pngOptionGroup.add("checkbox", undefined, "Embed Color Profile");
+    w.tabGroup.singleTab.optionsPanel.pngOptionGroup.icc = w.tabGroup.singleTab.optionsPanel.pngOptionGroup.add("checkbox", [50, 0, 300, 20], "Embed Color Profile");
     w.tabGroup.singleTab.optionsPanel.pngOptionGroup.icc.value = exportOptions.icc;
 
     w.tabGroup.singleTab.optionsPanel.pngOptionGroup.visible = (exportOptions.fileType == pngIndex);
@@ -845,15 +844,15 @@ function drawSingleImageGUI(exportOptions) {
     w.tabGroup.singleTab.optionsPanel.jpegOptionGroup = w.tabGroup.singleTab.optionsPanel.add('group');
     w.tabGroup.singleTab.optionsPanel.jpegOptionGroup.orientation = 'column';
 
-    w.tabGroup.singleTab.optionsPanel.jpegOptionGroup.visibleOnly = w.tabGroup.singleTab.optionsPanel.jpegOptionGroup.add("checkbox", undefined, "Visible Layer/Group Only");
+    w.tabGroup.singleTab.optionsPanel.jpegOptionGroup.visibleOnly = w.tabGroup.singleTab.optionsPanel.jpegOptionGroup.add("checkbox", [50, 0, 300, 20], "Visible Layer/Group Only");
     w.tabGroup.singleTab.optionsPanel.jpegOptionGroup.visibleOnly.value = exportOptions.visibleOnly;
 
-    w.tabGroup.singleTab.optionsPanel.jpegOptionGroup.icc = w.tabGroup.singleTab.optionsPanel.jpegOptionGroup.add("checkbox", undefined, "Embed Color Profile");
+    w.tabGroup.singleTab.optionsPanel.jpegOptionGroup.icc = w.tabGroup.singleTab.optionsPanel.jpegOptionGroup.add("checkbox", [50, 0, 300, 20], "Embed Color Profile");
     w.tabGroup.singleTab.optionsPanel.jpegOptionGroup.icc.value = exportOptions.icc;
 
     w.tabGroup.singleTab.optionsPanel.jpegOptionGroup.jpegQualityGroup = w.tabGroup.singleTab.optionsPanel.jpegOptionGroup.add('group');
     w.tabGroup.singleTab.optionsPanel.jpegOptionGroup.jpegQualityGroup.jpegQualityLabel = w.tabGroup.singleTab.optionsPanel.jpegOptionGroup.jpegQualityGroup.add("statictext", [0, 0, 70, 20], 'Quality:');
-    w.tabGroup.singleTab.optionsPanel.jpegOptionGroup.jpegQualityGroup.jpegQuality = w.tabGroup.singleTab.optionsPanel.jpegOptionGroup.jpegQualityGroup.add('slider', [0, 0, 270, 20], exportOptions.jpegQuality, 0, 12);
+    w.tabGroup.singleTab.optionsPanel.jpegOptionGroup.jpegQualityGroup.jpegQuality = w.tabGroup.singleTab.optionsPanel.jpegOptionGroup.jpegQualityGroup.add('slider', [0, 0, 300, 20], exportOptions.jpegQuality, 0, 12);
     w.tabGroup.singleTab.optionsPanel.jpegOptionGroup.jpegQualityGroup.jpegQualityText = w.tabGroup.singleTab.optionsPanel.jpegOptionGroup.jpegQualityGroup.add("statictext", [0, 0, 20, 20], exportOptions.jpegQuality.toString());
     w.tabGroup.singleTab.optionsPanel.jpegOptionGroup.jpegQualityGroup.jpegQuality.onChanging = function () {
         this.value = Math.round(this.value);
