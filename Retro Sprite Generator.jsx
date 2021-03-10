@@ -632,9 +632,9 @@ function createWindow(exportOptions) {
     // Filename Preferences
     w.namePanel.nameGroup = w.namePanel.add('group');
 
-    w.namePanel.nameGroup.nameText = w.namePanel.nameGroup.add("edittext", [0, 0, 365, 20], exportOptions.fileNamePrefix.toString());
+    w.namePanel.nameGroup.nameText = w.namePanel.nameGroup.add("edittext", [0, 0, 415, 20], exportOptions.fileNamePrefix.toString());
 
-    w.namePanel.nameGroup.resetName = w.namePanel.nameGroup.add("button", [0, 0, 100, 20], "Reset Name");
+    w.namePanel.nameGroup.resetName = w.namePanel.nameGroup.add("button", [0, 0, 50, 20], "Reset");
     w.namePanel.nameGroup.resetName.onClick = function () {
         w.namePanel.nameGroup.nameText.text = exportOptions.fileNamePrefix = app.activeDocument.name.split('.')[0]
     }
