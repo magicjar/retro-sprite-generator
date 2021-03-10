@@ -6,7 +6,9 @@
 
 Starting from version 2.0.0, you can export layers or groups to individual files.
 
----
+|   |   |
+| - | - |
+| ![sprite-sheet-export](https://user-images.githubusercontent.com/9734293/110560468-a0df9d00-8178-11eb-9a18-21ae8e277c14.png) | ![files-export](https://user-images.githubusercontent.com/9734293/110560483-a6d57e00-8178-11eb-9e89-5e5d38f5b086.png) |
 
 ## Feature
 * Export frame animation into sprite-sheet (png only)
