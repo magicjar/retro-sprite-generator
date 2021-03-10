@@ -610,7 +610,7 @@ function createWindow(exportOptions) {
     // Destination Preferences
     w.destinationPanel.destinationGroup = w.destinationPanel.add("group");
 
-    w.destinationPanel.destinationGroup.destinationForm = w.destinationPanel.destinationGroup.add("edittext", [0, 0, 365, 20], exportOptions.destination.toString());
+    w.destinationPanel.destinationGroup.destinationForm = w.destinationPanel.destinationGroup.add("edittext", [0, 0, 305, 20], exportOptions.destination.toString());
 
     w.destinationPanel.destinationGroup.destinationBrowse = w.destinationPanel.destinationGroup.add("button", [0, 0, 100, 20], "Browse");
     w.destinationPanel.destinationGroup.destinationBrowse.onClick = function () {
@@ -624,6 +624,10 @@ function createWindow(exportOptions) {
             w.destinationPanel.destinationGroup.destinationForm.text = selFolder.fsName;
         }
         w.defaultElement.active = true;
+    }
+    w.destinationPanel.destinationGroup.destinationReset = w.destinationPanel.destinationGroup.add("button", [0, 0, 50, 20], "Reset");
+    w.destinationPanel.destinationGroup.destinationReset.onClick = function () {
+        w.destinationPanel.destinationGroup.destinationForm.text = exportOptions.destination = Folder(app.activeDocument.fullName.parent).fsName;
     }
 
     // Filename
